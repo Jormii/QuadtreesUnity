@@ -76,15 +76,11 @@ namespace Quadtree {
         }
 
         public void Subdivide () {
-            UnityEngine.Debug.Log ("Subdividing quadtree " + ToString ());
-
             hasChildren = true;
 
             for (QuadtreeQuadrant quadrant = QuadtreeQuadrant.NorthEast; quadrant < QuadtreeQuadrant.NumberOfQuadrants; ++quadrant) {
                 QuadtreeRegion childRegion = CalculateChildRegion (quadrant);
-                children[(int) quadrant] = new RegionQuadtree<T> (depth + 1, bucketSize, region);
-
-                UnityEngine.Debug.LogFormat ("{0} children's quadtree is {1}", quadrant, children[(int) quadrant]);
+                children[(int) quadrant] = new RegionQuadtree<T> (depth + 1, bucketSize, childRegion);
             }
 
             foreach (KeyValuePair<Vector2D, T> entry in data) {
@@ -94,7 +90,7 @@ namespace Quadtree {
         }
 
         private QuadtreeRegion CalculateChildRegion (QuadtreeQuadrant quadrant) {
-            Vector2D childHalfRegion = region.HalfRegionSize / 2;
+            Vector2D childHalfRegion = region.HalfRegionSize / 2f;
             Vector2D childCenter = CalculateChildCenter (quadrant, childHalfRegion);
 
             return new QuadtreeRegion (childCenter, childHalfRegion);
@@ -108,25 +104,40 @@ namespace Quadtree {
             return new Vector2D (centerXComponent, centerYComponent);
         }
 
-        public List<IQuadtree<T>> GetLeafNodes () {
-            // TODO
-            throw new System.Exception ("Quadtree::RegionQuadtree<T>::GetLeafNodes() yet to implement");
+        public void GetLeafNodes (List<IQuadtree<T>> outputList) {
+            if (!hasChildren) {
+                outputList.Add (this);
+            } else {
+                foreach (IQuadtree<T> child in children) {
+                    child.GetLeafNodes (outputList);
+                }
+            }
         }
 
         public override string ToString () {
-            return string.Format ("RQ. Depth: {0}. Region: [{1}]. Data: {2}. Children [{3}]",
-                depth, region, PrintData (), PrintChildren ());
+            string tabs = PrintTabs ();
+            return string.Format ("{0}RQ. Depth: {1}. Region: [{2}].\n{3}Data: {4}.\n{5}Children: [{6}\n",
+                tabs, depth, region, tabs, PrintData (), tabs, PrintChildren ());
         }
 
-        private string PrintData () {
+        private string PrintTabs () {
             string str = "";
-            if (!hasChildren) {
-                foreach (KeyValuePair<Vector2D, T> entry in data) {
-                    str += string.Format ("[{0} : {1}]\t", entry.Key, entry.Value);
-                }
+            for (int i = 0; i < depth; ++i) {
+                str += "\t";
             }
 
             return str;
+        }
+
+        private string PrintData () {
+            string str = "{ ";
+            if (!hasChildren) {
+                foreach (KeyValuePair<Vector2D, T> entry in data) {
+                    str += string.Format ("[{0} => {1}]; ", entry.Key, entry.Value);
+                }
+            }
+
+            return str + " }";
         }
 
         private string PrintChildren () {
@@ -134,11 +145,12 @@ namespace Quadtree {
             if (hasChildren) {
                 str = "";
                 foreach (RegionQuadtree<T> child in children) {
-                    str += string.Format ("\t{0}\n", child.ToString ());
+                    str += string.Format ("\n{0}", child.ToString ());
                 }
+                str += PrintTabs ();
             }
 
-            return str;
+            return str + "]";
         }
 
         public override bool Equals (object obj) {

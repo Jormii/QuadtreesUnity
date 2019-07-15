@@ -1,8 +1,12 @@
-﻿using Quadtree;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
+using Quadtree;
 using UnityEngine;
 
 public class QuadtreeTest : MonoBehaviour {
 
+    public BoxCollider testingPrefab;
+    public uint numberOfInstances = 1000;
     // public uint quadtreeMaxDepth = 5; // Yet to implement
     public uint quadtreeBucketSize = 4;
     public Vector2 quadtreeOrigin = new Vector2 (0, 0);
@@ -10,7 +14,63 @@ public class QuadtreeTest : MonoBehaviour {
 
     private IQuadtree<Vector2> quadtree;
 
+    public readonly Color quadtreeFirstCenterColor = Color.red;
+    public readonly Color quadtreeCenterColor = Color.magenta;
+    public readonly Color gridColor = Color.green;
+    public readonly Color prefabCenterColor = Color.white;
+    public const float radius = 0.15f;
+
+    private void OnDrawGizmos () {
+        if (quadtree == null) {
+            return;
+        }
+
+        List<IQuadtree<Vector2>> leafNodes = new List<IQuadtree<Vector2>> ();
+        quadtree.GetLeafNodes (leafNodes);
+
+        // Paint quadtrees
+        Gizmos.color = quadtreeCenterColor;
+        PaintQuadtree (quadtree);
+
+        // Paint prefab positions
+        /*
+        Gizmos.color = prefabCenterColor;
+        foreach (IQuadtree<Vector2> leaf in leafNodes) {
+            foreach (Vector2 position in leaf.Data.Values) {
+                Gizmos.DrawSphere (position, radius);
+            }
+        }
+        */
+    }
+
+    private void PaintQuadtree<T> (IQuadtree<T> tree) {
+        Gizmos.color = (tree.Depth == 0) ? quadtreeFirstCenterColor : quadtreeCenterColor;
+        Vector2 center = new Vector2 (tree.Region.Center.X, tree.Region.Center.Y);
+        Gizmos.DrawSphere (center, radius);
+
+        if (tree.HasChildren) {
+            foreach (IQuadtree<T> child in tree.Children) {
+                PaintQuadtree (child);
+            }
+        } else {
+            Gizmos.color = gridColor;
+            Vector2 size = new Vector2 (
+                tree.Region.HalfRegionSize.X * 2f,
+                tree.Region.HalfRegionSize.Y * 2f);
+            Gizmos.DrawWireCube (center, size);
+        }
+    }
+
+    void Awake () {
+        for (int i = 0; i < numberOfInstances; ++i) {
+            Vector2 randomPosition = Random.insideUnitCircle * System.Math.Min (originalHalfSize.x, originalHalfSize.y);
+            Instantiate (testingPrefab, randomPosition, Quaternion.identity);
+        }
+    }
+
     void Start () {
+        Stopwatch treeBuildingStopwatch = Stopwatch.StartNew ();
+
         Vector2D origin = new Vector2D (quadtreeOrigin.x, quadtreeOrigin.y);
         Vector2D halfSize = new Vector2D (originalHalfSize.x, originalHalfSize.y);
         QuadtreeRegion region = new QuadtreeRegion (origin, halfSize);
@@ -21,11 +81,33 @@ public class QuadtreeTest : MonoBehaviour {
             BoxCollider bc = (BoxCollider) o;
             Vector2D point = new Vector2D (bc.transform.position.x, bc.transform.position.y);
             quadtree.InsertPoint (point, new Vector2 (point.X, point.Y));
-
-            // Debug.Log (quadtree);
         }
+        treeBuildingStopwatch.Stop ();
 
-        Debug.Log (quadtree);
+        Stopwatch collisionCheckingStopwatch = Stopwatch.StartNew ();
+        List<IQuadtree<Vector2>> leafNodes = new List<IQuadtree<Vector2>> ();
+        quadtree.GetLeafNodes (leafNodes);
+        foreach (IQuadtree<Vector2> leaf in leafNodes) {
+            List<Vector2> leafData = new List<Vector2> (leaf.Data.Values);
+            for (int i = 0; i < leafData.Count; ++i) {
+                for (int j = i + 1; j < leafData.Count; ++j) {
+                    // Collision checking
+                }
+            }
+        }
+        collisionCheckingStopwatch.Stop ();
+
+        Stopwatch bruteForceCollisionChecking = Stopwatch.StartNew ();
+        for (int i = 0; i < gameObjectsWithColliders.Length; ++i) {
+            for (int j = i + 1; j < gameObjectsWithColliders.Length; ++j) {
+                // Collision checking
+            }
+        }
+        bruteForceCollisionChecking.Stop ();
+
+        UnityEngine.Debug.Log ("Time spent building the quadtree: " + treeBuildingStopwatch.Elapsed);
+        UnityEngine.Debug.Log ("Time spent checking collisions (with quadtree): " + collisionCheckingStopwatch.Elapsed);
+        UnityEngine.Debug.Log ("Time spent checking collisions (brute force): " + bruteForceCollisionChecking.Elapsed);
     }
 
 }
