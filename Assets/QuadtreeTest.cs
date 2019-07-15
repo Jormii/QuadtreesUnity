@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using Quadtree;
+﻿using Quadtree;
 using UnityEngine;
 
 public class QuadtreeTest : MonoBehaviour {
@@ -24,7 +22,7 @@ public class QuadtreeTest : MonoBehaviour {
             Vector2D point = new Vector2D (bc.transform.position.x, bc.transform.position.y);
             quadtree.InsertPoint (point, new Vector2 (point.X, point.Y));
 
-            Debug.Log (quadtree);
+            // Debug.Log (quadtree);
         }
 
         Debug.Log (quadtree);

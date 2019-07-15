@@ -76,11 +76,15 @@ namespace Quadtree {
         }
 
         public void Subdivide () {
+            UnityEngine.Debug.Log ("Subdividing quadtree " + ToString ());
+
             hasChildren = true;
 
             for (QuadtreeQuadrant quadrant = QuadtreeQuadrant.NorthEast; quadrant < QuadtreeQuadrant.NumberOfQuadrants; ++quadrant) {
                 QuadtreeRegion childRegion = CalculateChildRegion (quadrant);
                 children[(int) quadrant] = new RegionQuadtree<T> (depth + 1, bucketSize, region);
+
+                UnityEngine.Debug.LogFormat ("{0} children's quadtree is {1}", quadrant, children[(int) quadrant]);
             }
 
             foreach (KeyValuePair<Vector2D, T> entry in data) {
@@ -110,7 +114,7 @@ namespace Quadtree {
         }
 
         public override string ToString () {
-            return string.Format ("RQ. Depth: {0}. Region: [{1}]. Data: {2}\n {3}",
+            return string.Format ("RQ. Depth: {0}. Region: [{1}]. Data: {2}. Children [{3}]",
                 depth, region, PrintData (), PrintChildren ());
         }
 
@@ -126,8 +130,9 @@ namespace Quadtree {
         }
 
         private string PrintChildren () {
-            string str = "";
+            string str = "No children";
             if (hasChildren) {
+                str = "";
                 foreach (RegionQuadtree<T> child in children) {
                     str += string.Format ("\t{0}\n", child.ToString ());
                 }
