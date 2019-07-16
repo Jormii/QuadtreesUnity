@@ -15,6 +15,10 @@ namespace Quadtree {
             get;
         }
 
+        uint MaximumDepth {
+            get;
+        }
+
         uint BucketSize {
             get;
         }

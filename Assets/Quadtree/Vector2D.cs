@@ -1,8 +1,8 @@
 ﻿namespace Quadtree {
 
     public struct Vector2D {
-        private readonly float x;
-        private readonly float y;
+        public readonly float x;
+        public readonly float y;
 
         public Vector2D (float x, float y) {
             this.x = x;
@@ -31,20 +31,12 @@
         }
 
         /*
-        Properties
+        Operator overload
          */
 
-        public float X {
-            get => x;
+        public static Vector2D operator * (Vector2D vector, float number) {
+            return new Vector2D (vector.x * number, vector.y * number);
         }
-
-        public float Y {
-            get => y;
-        }
-
-        /*
-        Operators overloading
-         */
 
         public static Vector2D operator / (Vector2D vector, float number) {
             return new Vector2D (vector.x / number, vector.y / number);
