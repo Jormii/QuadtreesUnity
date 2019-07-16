@@ -27,20 +27,8 @@ public class QuadtreeTest : MonoBehaviour {
 
         List<IQuadtree<Vector2>> leafNodes = new List<IQuadtree<Vector2>> ();
         quadtree.GetLeafNodes (leafNodes);
-
-        // Paint quadtrees
-        Gizmos.color = quadtreeCenterColor;
         PaintQuadtree (quadtree);
-
-        // Paint prefab positions
-        /*
-        Gizmos.color = prefabCenterColor;
-        foreach (IQuadtree<Vector2> leaf in leafNodes) {
-            foreach (Vector2 position in leaf.Data.Values) {
-                Gizmos.DrawSphere (position, radius);
-            }
-        }
-        */
+        PaintPrafabPositions (leafNodes);
     }
 
     private void PaintQuadtree<T> (IQuadtree<T> tree) {
@@ -61,6 +49,15 @@ public class QuadtreeTest : MonoBehaviour {
         }
     }
 
+    private void PaintPrafabPositions (List<IQuadtree<Vector2>> leafNodes) {
+        Gizmos.color = prefabCenterColor;
+        foreach (IQuadtree<Vector2> leaf in leafNodes) {
+            foreach (Vector2 position in leaf.Data.Values) {
+                Gizmos.DrawSphere (position, radius);
+            }
+        }
+    }
+
     void Awake () {
         for (int i = 0; i < numberOfInstances; ++i) {
             Vector2 randomPosition = Random.insideUnitCircle * System.Math.Min (originalHalfSize.x, originalHalfSize.y);
@@ -69,21 +66,30 @@ public class QuadtreeTest : MonoBehaviour {
     }
 
     void Start () {
-        Stopwatch treeBuildingStopwatch = Stopwatch.StartNew ();
+        Object[] gameObjectsWithColliders = GameObject.FindObjectsOfType<BoxCollider> ();
 
+        BuildQuadtree (gameObjectsWithColliders);
+        QuadtreeCollisionChecking ();
+        BruteForceCollisionChecking (gameObjectsWithColliders);
+    }
+
+    private void BuildQuadtree (Object[] gameObjectsWithColliders) {
         Vector2D origin = new Vector2D (quadtreeOrigin.x, quadtreeOrigin.y);
         Vector2D halfSize = new Vector2D (originalHalfSize.x, originalHalfSize.y);
         QuadtreeRegion region = new QuadtreeRegion (origin, halfSize);
         quadtree = new RegionQuadtree<Vector2> (quadtreeBucketSize, region);
 
-        Object[] gameObjectsWithColliders = GameObject.FindObjectsOfType<BoxCollider> ();
-        foreach (Object o in gameObjectsWithColliders) {
-            BoxCollider bc = (BoxCollider) o;
+        BoxCollider[] colliders = (BoxCollider[]) gameObjectsWithColliders;
+        Stopwatch treeBuildingStopwatch = Stopwatch.StartNew ();
+        foreach (BoxCollider bc in colliders) {
             Vector2D point = new Vector2D (bc.transform.position.x, bc.transform.position.y);
             quadtree.InsertPoint (point, new Vector2 (point.X, point.Y));
         }
         treeBuildingStopwatch.Stop ();
+        UnityEngine.Debug.Log ("Time spent building the quadtree: " + treeBuildingStopwatch.Elapsed);
+    }
 
+    private void QuadtreeCollisionChecking () {
         Stopwatch collisionCheckingStopwatch = Stopwatch.StartNew ();
         List<IQuadtree<Vector2>> leafNodes = new List<IQuadtree<Vector2>> ();
         quadtree.GetLeafNodes (leafNodes);
@@ -96,18 +102,18 @@ public class QuadtreeTest : MonoBehaviour {
             }
         }
         collisionCheckingStopwatch.Stop ();
+        UnityEngine.Debug.Log ("Time spent checking collisions (with quadtree): " + collisionCheckingStopwatch.Elapsed);
+    }
 
-        Stopwatch bruteForceCollisionChecking = Stopwatch.StartNew ();
+    private void BruteForceCollisionChecking (Object[] gameObjectsWithColliders) {
+        Stopwatch bruteForceCollisionCheckingStopwatch = Stopwatch.StartNew ();
         for (int i = 0; i < gameObjectsWithColliders.Length; ++i) {
             for (int j = i + 1; j < gameObjectsWithColliders.Length; ++j) {
                 // Collision checking
             }
         }
-        bruteForceCollisionChecking.Stop ();
-
-        UnityEngine.Debug.Log ("Time spent building the quadtree: " + treeBuildingStopwatch.Elapsed);
-        UnityEngine.Debug.Log ("Time spent checking collisions (with quadtree): " + collisionCheckingStopwatch.Elapsed);
-        UnityEngine.Debug.Log ("Time spent checking collisions (brute force): " + bruteForceCollisionChecking.Elapsed);
+        bruteForceCollisionCheckingStopwatch.Stop ();
+        UnityEngine.Debug.Log ("Time spent checking collisions (brute force): " + bruteForceCollisionCheckingStopwatch.Elapsed);
     }
 
 }
