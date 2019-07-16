@@ -1,7 +1,7 @@
 ﻿namespace Quadtree {
     public struct QuadtreeRegion {
-        private readonly Vector2D center;
-        private readonly Vector2D halfRegionSize;
+        public readonly Vector2D center;
+        public readonly Vector2D halfRegionSize;
 
         public QuadtreeRegion (Vector2D center, Vector2D halfRegionSize) {
             this.center = center;
@@ -9,8 +9,8 @@
         }
 
         public bool ContainsPoint (Vector2D point) {
-            bool containsXComponent = point.X >= LeftUpperCorner.X && point.X <= RightLowerCorner.X;
-            bool containsYComponent = point.Y <= LeftUpperCorner.Y && point.Y >= RightLowerCorner.Y;
+            bool containsXComponent = point.x >= LeftUpperCorner.x && point.x <= RightLowerCorner.x;
+            bool containsYComponent = point.y <= LeftUpperCorner.y && point.y >= RightLowerCorner.y;
 
             return containsXComponent && containsYComponent;
         }
@@ -40,26 +40,18 @@
         Properties
          */
 
-        public Vector2D Center {
-            get => center;
-        }
-
-        public Vector2D HalfRegionSize {
-            get => halfRegionSize;
-        }
-
         public Vector2D LeftUpperCorner {
             get {
-                float xComponent = center.X - halfRegionSize.X;
-                float yComponent = center.Y + halfRegionSize.Y;
+                float xComponent = center.x - halfRegionSize.x;
+                float yComponent = center.y + halfRegionSize.y;
                 return new Vector2D (xComponent, yComponent);
             }
         }
 
         public Vector2D RightLowerCorner {
             get {
-                float xComponent = center.X + halfRegionSize.X;
-                float yComponent = center.Y - halfRegionSize.Y;
+                float xComponent = center.x + halfRegionSize.x;
+                float yComponent = center.y - halfRegionSize.y;
                 return new Vector2D (xComponent, yComponent);
             }
         }

@@ -4,16 +4,18 @@ namespace Quadtree {
     public class RegionQuadtree<T> : IQuadtree<T> {
 
         private readonly uint depth;
+        private readonly uint maximumDepth;
         private readonly uint bucketSize;
         private readonly QuadtreeRegion region;
         private readonly RegionQuadtree<T>[] children;
         private readonly Dictionary<Vector2D, T> data;
         private bool hasChildren;
 
-        public RegionQuadtree (uint bucketSize, QuadtreeRegion region) : this (0, bucketSize, region) { }
+        public RegionQuadtree (uint maximumDepth, uint bucketSize, QuadtreeRegion region) : this (0, maximumDepth, bucketSize, region) { }
 
-        private RegionQuadtree (uint depth, uint bucketSize, QuadtreeRegion region) {
+        private RegionQuadtree (uint depth, uint maximumDepth, uint bucketSize, QuadtreeRegion region) {
             this.depth = depth;
+            this.maximumDepth = maximumDepth;
             this.bucketSize = bucketSize;
             this.region = region;
             this.children = new RegionQuadtree<T>[(int) QuadtreeQuadrant.NumberOfQuadrants];
@@ -30,7 +32,7 @@ namespace Quadtree {
                 return InsertPointToRespectiveChild (point, pointData);
             } else {
                 data.Add (point, pointData);
-                if (data.Count == bucketSize) {
+                if (data.Count == bucketSize && depth != maximumDepth) {
                     Subdivide ();
                 }
                 return true;
@@ -80,7 +82,7 @@ namespace Quadtree {
 
             for (QuadtreeQuadrant quadrant = QuadtreeQuadrant.NorthEast; quadrant < QuadtreeQuadrant.NumberOfQuadrants; ++quadrant) {
                 QuadtreeRegion childRegion = CalculateChildRegion (quadrant);
-                children[(int) quadrant] = new RegionQuadtree<T> (depth + 1, bucketSize, childRegion);
+                children[(int) quadrant] = new RegionQuadtree<T> (depth + 1, maximumDepth, bucketSize, childRegion);
             }
 
             foreach (KeyValuePair<Vector2D, T> entry in data) {
@@ -90,7 +92,7 @@ namespace Quadtree {
         }
 
         private QuadtreeRegion CalculateChildRegion (QuadtreeQuadrant quadrant) {
-            Vector2D childHalfRegion = region.HalfRegionSize / 2f;
+            Vector2D childHalfRegion = region.halfRegionSize / 2f;
             Vector2D childCenter = CalculateChildCenter (quadrant, childHalfRegion);
 
             return new QuadtreeRegion (childCenter, childHalfRegion);
@@ -99,8 +101,8 @@ namespace Quadtree {
         private Vector2D CalculateChildCenter (QuadtreeQuadrant quadrant, Vector2D childHalfRegion) {
             int xSign = (quadrant.XComponentIsPositive ()) ? 1 : -1;
             int ySign = (quadrant.YComponentIsPositive ()) ? 1 : -1;
-            float centerXComponent = region.Center.X + xSign * childHalfRegion.X;
-            float centerYComponent = region.Center.Y + ySign * childHalfRegion.Y;
+            float centerXComponent = region.center.x + xSign * childHalfRegion.x;
+            float centerYComponent = region.center.y + ySign * childHalfRegion.y;
             return new Vector2D (centerXComponent, centerYComponent);
         }
 
@@ -184,6 +186,10 @@ namespace Quadtree {
 
         public uint Depth {
             get => depth;
+        }
+
+        public uint MaximumDepth {
+            get => maximumDepth;
         }
 
         public uint BucketSize {
