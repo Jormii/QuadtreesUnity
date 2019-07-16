@@ -1,16 +1,18 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using Quadtree;
 using UnityEngine;
 
 public class QuadtreeTest : MonoBehaviour {
 
     public BoxCollider testingPrefab;
-    public uint numberOfInstances = 1000;
+    public uint numberOfInstances = 10000;
     public uint quadtreeMaxDepth = 5;
     public uint quadtreeBucketSize = 4;
     public Vector2 quadtreeOrigin = new Vector2 (0, 0);
     public Vector2 originalHalfSize = new Vector2 (100, 100);
+    private static Dictionary<string, uint> debugs = new Dictionary<string, uint> ();
 
     private IQuadtree<Vector2> quadtree;
 
@@ -20,7 +22,7 @@ public class QuadtreeTest : MonoBehaviour {
     public readonly Color prefabCenterColor = Color.white;
     public const float radius = 0.15f;
 
-    private void OnDrawGizmos () {
+    private void OnDrawGizmosSelected () {
         if (quadtree == null) {
             return;
         }
@@ -71,6 +73,8 @@ public class QuadtreeTest : MonoBehaviour {
         BuildQuadtree (gameObjectsWithColliders);
         QuadtreeCollisionChecking ();
         BruteForceCollisionChecking (gameObjectsWithColliders);
+        PrintDebugMessages ();
+        // UnityEngine.Debug.LogWarning (quadtree);
     }
 
     private void BuildQuadtree (Object[] gameObjectsWithColliders) {
@@ -114,6 +118,19 @@ public class QuadtreeTest : MonoBehaviour {
         }
         bruteForceCollisionCheckingStopwatch.Stop ();
         UnityEngine.Debug.Log ("Time spent checking collisions (brute force): " + bruteForceCollisionCheckingStopwatch.Elapsed);
+    }
+
+    public static void AddDebugMessage (string message) {
+        if (debugs.ContainsKey (message)) {
+            debugs[message] += 1;
+        } else {
+            debugs.Add (message, 0);
+        }
+    }
+    private static void PrintDebugMessages () {
+        foreach (KeyValuePair<string, uint> entry in debugs.OrderByDescending (key => key.Value)) {
+            UnityEngine.Debug.LogFormat ("[ {0} => {1} ]", entry.Key, entry.Value);
+        }
     }
 
 }

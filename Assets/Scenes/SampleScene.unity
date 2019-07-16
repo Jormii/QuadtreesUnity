@@ -234,7 +234,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   testingPrefab: {fileID: 2740704968647216667, guid: d989b13c07cd3ca60a43f064fed13532,
     type: 3}
-  numberOfInstances: 20000
+  numberOfInstances: 100
   quadtreeMaxDepth: 5
   quadtreeBucketSize: 4
   quadtreeOrigin: {x: 0, y: 0}
