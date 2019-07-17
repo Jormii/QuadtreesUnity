@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Runtime.CompilerServices;
 
 namespace Quadtree {
     public class RegionQuadtree<T> : IQuadtree<T> {
@@ -22,7 +23,7 @@ namespace Quadtree {
 
         public bool InsertPoint (Vector2D point, T pointData) {
             if (IsLeaf) {
-                if (ContainsPoint (point)) {
+                if (!region.ContainsPoint (point) && data.ContainsKey (point)) {
                     return false;
                 }
 
@@ -32,27 +33,18 @@ namespace Quadtree {
                 }
                 return true;
             } else {
-                return InsertPointToRespectiveChild (point, pointData);
+                return InsertInChild (point, pointData);
             }
         }
 
-        private bool InsertPointToRespectiveChild (Vector2D point, T pointData) {
-            RegionQuadtree<T> childToInsert = CalculateRespectiveChild (point);
-            if (childToInsert == null) {
-                return false;
-            }
-
-            return childToInsert.InsertPoint (point, pointData);
-        }
-
-        private RegionQuadtree<T> CalculateRespectiveChild (Vector2D point) {
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        private bool InsertInChild (Vector2D point, T pointData) {
             foreach (RegionQuadtree<T> child in children) {
                 if (child.Region.ContainsPoint (point)) {
-                    return child;
+                    return child.InsertPoint (point, pointData);
                 }
             }
-
-            return null;
+            return false;
         }
 
         public bool ContainsPoint (Vector2D point) {
@@ -79,7 +71,7 @@ namespace Quadtree {
             }
 
             foreach (KeyValuePair<Vector2D, T> entry in data) {
-                InsertPointToRespectiveChild (entry.Key, entry.Value);
+                InsertInChild (entry.Key, entry.Value);
             }
             data.Clear ();
         }
