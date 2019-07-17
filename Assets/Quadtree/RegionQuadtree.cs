@@ -14,7 +14,6 @@ namespace Quadtree {
         public RegionQuadtree (uint maximumDepth, uint bucketSize, QuadtreeRegion region) : this (0, maximumDepth, bucketSize, region) { }
 
         private RegionQuadtree (uint depth, uint maximumDepth, uint bucketSize, QuadtreeRegion region) {
-            QuadtreeTest.AddDebugMessage ("RegionQuadtree::RegionQuadtree");
             this.depth = depth;
             this.maximumDepth = maximumDepth;
             this.bucketSize = bucketSize;
@@ -22,8 +21,6 @@ namespace Quadtree {
         }
 
         public bool InsertPoint (Vector2D point, T pointData) {
-            QuadtreeTest.AddDebugMessage ("RegionQuadtree::InsertPoint");
-
             if (IsLeaf) {
                 if (ContainsPoint (point)) {
                     return false;
@@ -40,7 +37,6 @@ namespace Quadtree {
         }
 
         private bool InsertPointToRespectiveChild (Vector2D point, T pointData) {
-            QuadtreeTest.AddDebugMessage ("RegionQuadtree::InsertPointToRespectiveChild");
             RegionQuadtree<T> childToInsert = CalculateRespectiveChild (point);
             if (childToInsert == null) {
                 return false;
@@ -50,7 +46,6 @@ namespace Quadtree {
         }
 
         private RegionQuadtree<T> CalculateRespectiveChild (Vector2D point) {
-            QuadtreeTest.AddDebugMessage ("RegionQuadtree::CalculateRespectiveChild");
             foreach (RegionQuadtree<T> child in children) {
                 if (child.Region.ContainsPoint (point)) {
                     return child;
@@ -61,7 +56,6 @@ namespace Quadtree {
         }
 
         public bool ContainsPoint (Vector2D point) {
-            QuadtreeTest.AddDebugMessage ("RegionQuadtree::ContainsPoint");
             if (!region.ContainsPoint (point)) {
                 return false;
             }
@@ -79,8 +73,6 @@ namespace Quadtree {
         }
 
         public void Subdivide () {
-            QuadtreeTest.AddDebugMessage ("RegionQuadtree::Subdivide");
-
             for (QuadtreeQuadrant quadrant = QuadtreeQuadrant.NorthEast; quadrant < QuadtreeQuadrant.NumberOfQuadrants; ++quadrant) {
                 QuadtreeRegion childRegion = CalculateChildRegion (quadrant);
                 children[(int) quadrant] = new RegionQuadtree<T> (depth + 1, maximumDepth, bucketSize, childRegion);
@@ -93,15 +85,13 @@ namespace Quadtree {
         }
 
         private QuadtreeRegion CalculateChildRegion (QuadtreeQuadrant quadrant) {
-            QuadtreeTest.AddDebugMessage ("RegionQuadtree::CalculateChildRegion");
-            Vector2D childHalfRegion = region.halfRegionSize / 2f;
+            Vector2D childHalfRegion = .5f * region.halfRegionSize;
             Vector2D childCenter = CalculateChildCenter (quadrant, childHalfRegion);
 
             return new QuadtreeRegion (childCenter, childHalfRegion);
         }
 
         private Vector2D CalculateChildCenter (QuadtreeQuadrant quadrant, Vector2D childHalfRegion) {
-            QuadtreeTest.AddDebugMessage ("RegionQuadtree::CalculateChildCenter");
             int xSign = (quadrant.XComponentIsPositive ()) ? 1 : -1;
             int ySign = (quadrant.YComponentIsPositive ()) ? 1 : -1;
             float centerXComponent = region.center.x + xSign * childHalfRegion.x;
@@ -110,8 +100,6 @@ namespace Quadtree {
         }
 
         public IQuadtree<T> GetChild (QuadtreeQuadrant quadrant) {
-            QuadtreeTest.AddDebugMessage ("RegionQuadtree::GetChild");
-
             if (quadrant == QuadtreeQuadrant.NumberOfQuadrants) {
                 throw new System.Exception ("Argument cannot be \"NumberOfRegions\"");
             }
@@ -124,7 +112,6 @@ namespace Quadtree {
         }
 
         public void GetLeafNodes (List<IQuadtree<T>> outputList) {
-            QuadtreeTest.AddDebugMessage ("RegionQuadtree::GetLeafNodes");
             if (IsLeaf) {
                 outputList.Add (this);
             } else {
@@ -135,7 +122,6 @@ namespace Quadtree {
         }
 
         public override bool Equals (object obj) {
-            QuadtreeTest.AddDebugMessage ("RegionQuadtree::Equals");
             if (obj == null) {
                 return false;
             }
@@ -152,7 +138,6 @@ namespace Quadtree {
         }
 
         public override int GetHashCode () {
-            QuadtreeTest.AddDebugMessage ("RegionQuadtree::GetHashCode");
             return (bucketSize, data, depth, IsLeaf, region).GetHashCode ();
         }
 

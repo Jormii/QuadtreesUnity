@@ -12,7 +12,6 @@ public class QuadtreeTest : MonoBehaviour {
     public uint quadtreeBucketSize = 4;
     public Vector2 quadtreeOrigin = new Vector2 (0, 0);
     public Vector2 originalHalfSize = new Vector2 (100, 100);
-    private static Dictionary<string, uint> debugs = new Dictionary<string, uint> ();
 
     private IQuadtree<Vector2> quadtree;
 
@@ -30,19 +29,18 @@ public class QuadtreeTest : MonoBehaviour {
         List<IQuadtree<Vector2>> leafNodes = new List<IQuadtree<Vector2>> ();
         quadtree.GetLeafNodes (leafNodes);
         PaintQuadtree (quadtree);
-        // PaintPrafabPositions (leafNodes);
     }
 
     private void PaintQuadtree<T> (IQuadtree<T> tree) {
         Gizmos.color = (tree.Depth == 0) ? quadtreeFirstCenterColor : quadtreeCenterColor;
         Vector2 center = new Vector2 (tree.Region.center.x, tree.Region.center.y);
-        // Gizmos.DrawSphere (center, radius);
 
         if (tree.IsLeaf) {
             Gizmos.color = gridColor;
             Vector2 size = new Vector2 (
                 tree.Region.halfRegionSize.x * 2f,
-                tree.Region.halfRegionSize.y * 2f);
+                tree.Region.halfRegionSize.y * 2f
+            );
             Gizmos.DrawWireCube (center, size);
         } else {
             for (QuadtreeQuadrant quadrant = QuadtreeQuadrant.NorthEast; quadrant < QuadtreeQuadrant.NumberOfQuadrants; ++quadrant) {
@@ -51,40 +49,26 @@ public class QuadtreeTest : MonoBehaviour {
         }
     }
 
-    private void PaintPrafabPositions (List<IQuadtree<Vector2>> leafNodes) {
-        Gizmos.color = prefabCenterColor;
-        foreach (IQuadtree<Vector2> leaf in leafNodes) {
-            foreach (Vector2 position in leaf.Data.Values) {
-                Gizmos.DrawSphere (position, radius);
-            }
-        }
-    }
-
-    void Awake () {
+    void Start () {
+        BoxCollider[] colliders = new BoxCollider[numberOfInstances];
         for (int i = 0; i < numberOfInstances; ++i) {
             Vector2 randomPosition = Random.insideUnitCircle * System.Math.Min (originalHalfSize.x, originalHalfSize.y);
-            Instantiate (testingPrefab, randomPosition, Quaternion.identity);
+            colliders[i] = Instantiate<BoxCollider> (testingPrefab, randomPosition, Quaternion.identity);
         }
-    }
 
-    void Start () {
-        Object[] gameObjectsWithColliders = GameObject.FindObjectsOfType<BoxCollider> ();
-
-        BuildQuadtree (gameObjectsWithColliders);
+        BuildQuadtree (colliders);
         QuadtreeCollisionChecking ();
-        BruteForceCollisionChecking (gameObjectsWithColliders);
-        PrintDebugMessages ();
+        BruteForceCollisionChecking (colliders);
 
         // UnityEngine.Debug.LogWarning (quadtree);
     }
 
-    private void BuildQuadtree (Object[] gameObjectsWithColliders) {
+    private void BuildQuadtree (BoxCollider[] colliders) {
         Vector2D origin = new Vector2D (quadtreeOrigin.x, quadtreeOrigin.y);
         Vector2D halfSize = new Vector2D (originalHalfSize.x, originalHalfSize.y);
         QuadtreeRegion region = new QuadtreeRegion (origin, halfSize);
         quadtree = new RegionQuadtree<Vector2> (quadtreeMaxDepth, quadtreeBucketSize, region);
 
-        BoxCollider[] colliders = (BoxCollider[]) gameObjectsWithColliders;
         Stopwatch treeBuildingStopwatch = Stopwatch.StartNew ();
         foreach (BoxCollider bc in colliders) {
             Vector2D point = new Vector2D (bc.transform.position.x, bc.transform.position.y);
@@ -113,28 +97,15 @@ public class QuadtreeTest : MonoBehaviour {
         UnityEngine.Debug.Log ("Time spent checking collisions (with quadtree): " + collisionCheckingStopwatch.Elapsed);
     }
 
-    private void BruteForceCollisionChecking (Object[] gameObjectsWithColliders) {
+    private void BruteForceCollisionChecking (BoxCollider[] colliders) {
         Stopwatch bruteForceCollisionCheckingStopwatch = Stopwatch.StartNew ();
-        for (int i = 0; i < gameObjectsWithColliders.Length; ++i) {
-            for (int j = i + 1; j < gameObjectsWithColliders.Length; ++j) {
+        for (int i = 0; i < colliders.Length; ++i) {
+            for (int j = i + 1; j < colliders.Length; ++j) {
                 // Collision checking
             }
         }
         bruteForceCollisionCheckingStopwatch.Stop ();
         UnityEngine.Debug.Log ("Time spent checking collisions (brute force): " + bruteForceCollisionCheckingStopwatch.Elapsed);
-    }
-
-    public static void AddDebugMessage (string message) {
-        if (debugs.ContainsKey (message)) {
-            debugs[message] += 1;
-        } else {
-            debugs.Add (message, 1);
-        }
-    }
-    private static void PrintDebugMessages () {
-        foreach (KeyValuePair<string, uint> entry in debugs.OrderByDescending (key => key.Value)) {
-            UnityEngine.Debug.LogFormat ("[ {0} => {1} ]", entry.Key, entry.Value);
-        }
     }
 
 }

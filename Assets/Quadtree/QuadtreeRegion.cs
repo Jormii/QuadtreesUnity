@@ -1,13 +1,13 @@
 ﻿namespace Quadtree {
 
     public struct QuadtreeRegion {
+
         public readonly Vector2D center;
         public readonly Vector2D halfRegionSize;
         public readonly Vector2D leftUpperCorner;
         public readonly Vector2D rightLowerCorner;
 
         public QuadtreeRegion (Vector2D center, Vector2D halfRegionSize) {
-            QuadtreeTest.AddDebugMessage ("QuadtreeRegion::QuadtreeRegion");
             this.center = center;
             this.halfRegionSize = halfRegionSize;
 
@@ -23,7 +23,6 @@
         }
 
         public bool ContainsPoint (Vector2D point) {
-            QuadtreeTest.AddDebugMessage ("QuadtreeRegion::ContainsPoint");
             bool containsXComponent = point.x >= leftUpperCorner.x && point.x <= rightLowerCorner.x;
             bool containsYComponent = point.y <= leftUpperCorner.y && point.y >= rightLowerCorner.y;
 
@@ -31,7 +30,6 @@
         }
 
         public override bool Equals (object obj) {
-            QuadtreeTest.AddDebugMessage ("QuadtreeRegion::Equals");
             if (obj == null) {
                 return false;
             }
@@ -45,7 +43,6 @@
         }
 
         public override int GetHashCode () {
-            QuadtreeTest.AddDebugMessage ("QuadtreeRegion::GetHashCode");
             return (center, halfRegionSize).GetHashCode ();
         }
 
