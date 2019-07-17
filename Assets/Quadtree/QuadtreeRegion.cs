@@ -1,4 +1,6 @@
-﻿namespace Quadtree {
+﻿using System.Runtime.CompilerServices;
+
+namespace Quadtree {
 
     public struct QuadtreeRegion {
 
@@ -22,11 +24,10 @@
             );
         }
 
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public bool ContainsPoint (Vector2D point) {
-            bool containsXComponent = point.x >= leftUpperCorner.x && point.x <= rightLowerCorner.x;
-            bool containsYComponent = point.y <= leftUpperCorner.y && point.y >= rightLowerCorner.y;
-
-            return containsXComponent && containsYComponent;
+            return point.x >= leftUpperCorner.x && point.x <= rightLowerCorner.x &&
+                point.y <= leftUpperCorner.y && point.y >= rightLowerCorner.y;
         }
 
         public override bool Equals (object obj) {

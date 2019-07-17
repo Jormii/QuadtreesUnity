@@ -52,8 +52,8 @@ public class QuadtreeTest : MonoBehaviour {
     void Start () {
         BoxCollider[] colliders = new BoxCollider[numberOfInstances];
         for (int i = 0; i < numberOfInstances; ++i) {
-            Vector2 randomPosition = Random.insideUnitCircle * System.Math.Min (originalHalfSize.x, originalHalfSize.y);
-            colliders[i] = Instantiate<BoxCollider> (testingPrefab, randomPosition, Quaternion.identity);
+            Vector2 position = GetRandomPosition ();
+            colliders[i] = Instantiate<BoxCollider> (testingPrefab, position, Quaternion.identity);
         }
 
         BuildQuadtree (colliders);
@@ -61,6 +61,17 @@ public class QuadtreeTest : MonoBehaviour {
         BruteForceCollisionChecking (colliders);
 
         // UnityEngine.Debug.LogWarning (quadtree);
+    }
+
+    private Vector2 GetRandomPosition () {
+        return Random.insideUnitCircle * System.Math.Min (originalHalfSize.x, originalHalfSize.y);
+    }
+
+    private Vector2 GetPositionInDiagonal (int index) {
+        return new Vector2 (
+            Mathf.Lerp (-originalHalfSize.x, originalHalfSize.x, (float) index / numberOfInstances),
+            Mathf.Lerp (-originalHalfSize.y, originalHalfSize.y, (float) index / numberOfInstances)
+        );
     }
 
     private void BuildQuadtree (BoxCollider[] colliders) {
