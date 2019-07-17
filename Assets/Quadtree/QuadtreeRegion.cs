@@ -24,8 +24,8 @@
 
         public bool ContainsPoint (Vector2D point) {
             QuadtreeTest.AddDebugMessage ("QuadtreeRegion::ContainsPoint");
-            bool containsXComponent = point.x >= leftUpperCorner.x && point.x <= leftUpperCorner.x;
-            bool containsYComponent = point.y <= leftUpperCorner.y && point.y >= leftUpperCorner.y;
+            bool containsXComponent = point.x >= leftUpperCorner.x && point.x <= rightLowerCorner.x;
+            bool containsYComponent = point.y <= leftUpperCorner.y && point.y >= rightLowerCorner.y;
 
             return containsXComponent && containsYComponent;
         }
@@ -46,11 +46,12 @@
 
         public override int GetHashCode () {
             QuadtreeTest.AddDebugMessage ("QuadtreeRegion::GetHashCode");
-            return (center, halfRegionSize, leftUpperCorner, leftUpperCorner).GetHashCode ();
+            return (center, halfRegionSize).GetHashCode ();
         }
 
         public override string ToString () {
-            return string.Format ("O: {0}, HS: {1}", center.ToString (), halfRegionSize.ToString ());
+            return string.Format ("O: {0}, HS: {1}, ULC: {2}, LRC: {3}",
+                center, halfRegionSize, leftUpperCorner, rightLowerCorner);
         }
 
     }

@@ -7,7 +7,6 @@ namespace Quadtree {
 
         bool InsertPoint (Vector2D point, T data);
         bool ContainsPoint (Vector2D point);
-        bool RegionContainsPoint (Vector2D point);
         void Subdivide ();
         IQuadtree<T> GetChild (QuadtreeQuadrant quadrant);
         void GetLeafNodes (List<IQuadtree<T>> outputList);

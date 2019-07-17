@@ -23,11 +23,12 @@ namespace Quadtree {
 
         public bool InsertPoint (Vector2D point, T pointData) {
             QuadtreeTest.AddDebugMessage ("RegionQuadtree::InsertPoint");
-            if (ContainsPoint (point)) {
-                return false;
-            }
 
             if (IsLeaf) {
+                if (ContainsPoint (point)) {
+                    return false;
+                }
+
                 data.Add (point, pointData);
                 if (data.Count == bucketSize && depth != maximumDepth) {
                     Subdivide ();
@@ -51,7 +52,7 @@ namespace Quadtree {
         private RegionQuadtree<T> CalculateRespectiveChild (Vector2D point) {
             QuadtreeTest.AddDebugMessage ("RegionQuadtree::CalculateRespectiveChild");
             foreach (RegionQuadtree<T> child in children) {
-                if (child.RegionContainsPoint (point)) {
+                if (child.Region.ContainsPoint (point)) {
                     return child;
                 }
             }
@@ -75,11 +76,6 @@ namespace Quadtree {
                 }
                 return false;
             }
-        }
-
-        public bool RegionContainsPoint (Vector2D point) {
-            QuadtreeTest.AddDebugMessage ("RegionQuadtree::RegionContainsPoint");
-            return region.ContainsPoint (point);
         }
 
         public void Subdivide () {

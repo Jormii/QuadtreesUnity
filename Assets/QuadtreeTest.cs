@@ -74,6 +74,7 @@ public class QuadtreeTest : MonoBehaviour {
         QuadtreeCollisionChecking ();
         BruteForceCollisionChecking (gameObjectsWithColliders);
         PrintDebugMessages ();
+
         // UnityEngine.Debug.LogWarning (quadtree);
     }
 
@@ -87,7 +88,10 @@ public class QuadtreeTest : MonoBehaviour {
         Stopwatch treeBuildingStopwatch = Stopwatch.StartNew ();
         foreach (BoxCollider bc in colliders) {
             Vector2D point = new Vector2D (bc.transform.position.x, bc.transform.position.y);
-            quadtree.InsertPoint (point, new Vector2 (point.x, point.y));
+            bool inserted = quadtree.InsertPoint (point, new Vector2 (point.x, point.y));
+            if (!inserted) {
+                // UnityEngine.Debug.LogWarning ("");
+            }
         }
         treeBuildingStopwatch.Stop ();
         UnityEngine.Debug.Log ("Time spent building the quadtree: " + treeBuildingStopwatch.Elapsed);
