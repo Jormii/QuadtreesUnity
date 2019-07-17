@@ -1,13 +1,18 @@
 ﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace Quadtree {
+
     public interface IQuadtree<T> {
+
         bool InsertPoint (Vector2D point, T data);
         bool ContainsPoint (Vector2D point);
+        bool RegionContainsPoint (Vector2D point);
         void Subdivide ();
+        IQuadtree<T> GetChild (QuadtreeQuadrant quadrant);
         void GetLeafNodes (List<IQuadtree<T>> outputList);
 
-        bool HasChildren {
+        bool IsLeaf {
             get;
         }
 
@@ -27,11 +32,7 @@ namespace Quadtree {
             get;
         }
 
-        IQuadtree<T>[] Children {
-            get;
-        }
-
-        Dictionary<Vector2D, T> Data {
+        ReadOnlyDictionary<Vector2D, T> Data {
             get;
         }
     }

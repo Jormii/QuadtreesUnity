@@ -1,18 +1,31 @@
 ﻿namespace Quadtree {
+
     public struct QuadtreeRegion {
         public readonly Vector2D center;
         public readonly Vector2D halfRegionSize;
+        public readonly Vector2D leftUpperCorner;
+        public readonly Vector2D rightLowerCorner;
 
         public QuadtreeRegion (Vector2D center, Vector2D halfRegionSize) {
             QuadtreeTest.AddDebugMessage ("QuadtreeRegion::QuadtreeRegion");
             this.center = center;
             this.halfRegionSize = halfRegionSize;
+
+            this.leftUpperCorner = new Vector2D (
+                center.x - halfRegionSize.x,
+                center.y + halfRegionSize.y
+            );
+
+            this.rightLowerCorner = new Vector2D (
+                center.x + halfRegionSize.x,
+                center.y - halfRegionSize.y
+            );
         }
 
         public bool ContainsPoint (Vector2D point) {
             QuadtreeTest.AddDebugMessage ("QuadtreeRegion::ContainsPoint");
-            bool containsXComponent = point.x >= LeftUpperCorner.x && point.x <= RightLowerCorner.x;
-            bool containsYComponent = point.y <= LeftUpperCorner.y && point.y >= RightLowerCorner.y;
+            bool containsXComponent = point.x >= leftUpperCorner.x && point.x <= leftUpperCorner.x;
+            bool containsYComponent = point.y <= leftUpperCorner.y && point.y >= leftUpperCorner.y;
 
             return containsXComponent && containsYComponent;
         }
@@ -33,33 +46,12 @@
 
         public override int GetHashCode () {
             QuadtreeTest.AddDebugMessage ("QuadtreeRegion::GetHashCode");
-            return (center, halfRegionSize, LeftUpperCorner, RightLowerCorner).GetHashCode ();
+            return (center, halfRegionSize, leftUpperCorner, leftUpperCorner).GetHashCode ();
         }
 
         public override string ToString () {
             return string.Format ("O: {0}, HS: {1}", center.ToString (), halfRegionSize.ToString ());
         }
 
-        /*
-        Properties
-         */
-
-        public Vector2D LeftUpperCorner {
-            get {
-                QuadtreeTest.AddDebugMessage ("QuadtreeRegion::LeftUpperCorner");
-                float xComponent = center.x - halfRegionSize.x;
-                float yComponent = center.y + halfRegionSize.y;
-                return new Vector2D (xComponent, yComponent);
-            }
-        }
-
-        public Vector2D RightLowerCorner {
-            get {
-                QuadtreeTest.AddDebugMessage ("QuadtreeRegion::RightLowerCorner");
-                float xComponent = center.x + halfRegionSize.x;
-                float yComponent = center.y - halfRegionSize.y;
-                return new Vector2D (xComponent, yComponent);
-            }
-        }
     }
 }

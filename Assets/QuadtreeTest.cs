@@ -38,16 +38,16 @@ public class QuadtreeTest : MonoBehaviour {
         Vector2 center = new Vector2 (tree.Region.center.x, tree.Region.center.y);
         // Gizmos.DrawSphere (center, radius);
 
-        if (tree.HasChildren) {
-            foreach (IQuadtree<T> child in tree.Children) {
-                PaintQuadtree (child);
-            }
-        } else {
+        if (tree.IsLeaf) {
             Gizmos.color = gridColor;
             Vector2 size = new Vector2 (
                 tree.Region.halfRegionSize.x * 2f,
                 tree.Region.halfRegionSize.y * 2f);
             Gizmos.DrawWireCube (center, size);
+        } else {
+            for (QuadtreeQuadrant quadrant = QuadtreeQuadrant.NorthEast; quadrant < QuadtreeQuadrant.NumberOfQuadrants; ++quadrant) {
+                PaintQuadtree (tree.GetChild (quadrant));
+            }
         }
     }
 
@@ -124,7 +124,7 @@ public class QuadtreeTest : MonoBehaviour {
         if (debugs.ContainsKey (message)) {
             debugs[message] += 1;
         } else {
-            debugs.Add (message, 0);
+            debugs.Add (message, 1);
         }
     }
     private static void PrintDebugMessages () {

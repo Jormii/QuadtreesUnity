@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace Quadtree {
     public class RegionQuadtree<T> : IQuadtree<T> {
@@ -7,9 +8,8 @@ namespace Quadtree {
         private readonly uint maximumDepth;
         private readonly uint bucketSize;
         private readonly QuadtreeRegion region;
-        private readonly RegionQuadtree<T>[] children;
-        private readonly Dictionary<Vector2D, T> data;
-        private bool hasChildren;
+        private readonly RegionQuadtree<T>[] children = new RegionQuadtree<T>[(int) QuadtreeQuadrant.NumberOfQuadrants];
+        private readonly Dictionary<Vector2D, T> data = new Dictionary<Vector2D, T> ();
 
         public RegionQuadtree (uint maximumDepth, uint bucketSize, QuadtreeRegion region) : this (0, maximumDepth, bucketSize, region) { }
 
@@ -19,9 +19,6 @@ namespace Quadtree {
             this.maximumDepth = maximumDepth;
             this.bucketSize = bucketSize;
             this.region = region;
-            this.children = new RegionQuadtree<T>[(int) QuadtreeQuadrant.NumberOfQuadrants];
-            this.data = new Dictionary<Vector2D, T> ();
-            this.hasChildren = false;
         }
 
         public bool InsertPoint (Vector2D point, T pointData) {
@@ -30,17 +27,15 @@ namespace Quadtree {
                 return false;
             }
 
-            if (hasChildren) {
-                return InsertPointToRespectiveChild (point, pointData);
-            } else {
+            if (IsLeaf) {
                 data.Add (point, pointData);
                 if (data.Count == bucketSize && depth != maximumDepth) {
                     Subdivide ();
                 }
                 return true;
+            } else {
+                return InsertPointToRespectiveChild (point, pointData);
             }
-
-            throw new System.Exception ("Error inserting point to quadtree");
         }
 
         private bool InsertPointToRespectiveChild (Vector2D point, T pointData) {
@@ -56,7 +51,7 @@ namespace Quadtree {
         private RegionQuadtree<T> CalculateRespectiveChild (Vector2D point) {
             QuadtreeTest.AddDebugMessage ("RegionQuadtree::CalculateRespectiveChild");
             foreach (RegionQuadtree<T> child in children) {
-                if (child.Region.ContainsPoint (point)) {
+                if (child.RegionContainsPoint (point)) {
                     return child;
                 }
             }
@@ -70,21 +65,25 @@ namespace Quadtree {
                 return false;
             }
 
-            if (hasChildren) {
+            if (IsLeaf) {
+                return data.ContainsKey (point);
+            } else {
                 foreach (RegionQuadtree<T> child in children) {
                     if (child.ContainsPoint (point)) {
                         return true;
                     }
                 }
                 return false;
-            } else {
-                return data.ContainsKey (point);
             }
+        }
+
+        public bool RegionContainsPoint (Vector2D point) {
+            QuadtreeTest.AddDebugMessage ("RegionQuadtree::RegionContainsPoint");
+            return region.ContainsPoint (point);
         }
 
         public void Subdivide () {
             QuadtreeTest.AddDebugMessage ("RegionQuadtree::Subdivide");
-            hasChildren = true;
 
             for (QuadtreeQuadrant quadrant = QuadtreeQuadrant.NorthEast; quadrant < QuadtreeQuadrant.NumberOfQuadrants; ++quadrant) {
                 QuadtreeRegion childRegion = CalculateChildRegion (quadrant);
@@ -114,9 +113,23 @@ namespace Quadtree {
             return new Vector2D (centerXComponent, centerYComponent);
         }
 
+        public IQuadtree<T> GetChild (QuadtreeQuadrant quadrant) {
+            QuadtreeTest.AddDebugMessage ("RegionQuadtree::GetChild");
+
+            if (quadrant == QuadtreeQuadrant.NumberOfQuadrants) {
+                throw new System.Exception ("Argument cannot be \"NumberOfRegions\"");
+            }
+
+            if (IsLeaf) {
+                throw new System.Exception ("Quadtree is leaf");
+            }
+
+            return children[(int) quadrant];
+        }
+
         public void GetLeafNodes (List<IQuadtree<T>> outputList) {
             QuadtreeTest.AddDebugMessage ("RegionQuadtree::GetLeafNodes");
-            if (!hasChildren) {
+            if (IsLeaf) {
                 outputList.Add (this);
             } else {
                 foreach (IQuadtree<T> child in children) {
@@ -139,13 +152,12 @@ namespace Quadtree {
             return bucketSize == otherQuadtree.bucketSize &&
                 data.Equals (otherQuadtree.data) &&
                 depth == otherQuadtree.depth &&
-                hasChildren == otherQuadtree.hasChildren &&
                 region.Equals (otherQuadtree.region);
         }
 
         public override int GetHashCode () {
             QuadtreeTest.AddDebugMessage ("RegionQuadtree::GetHashCode");
-            return (bucketSize, data, depth, hasChildren, region).GetHashCode ();
+            return (bucketSize, data, depth, IsLeaf, region).GetHashCode ();
         }
 
         public override string ToString () {
@@ -165,7 +177,7 @@ namespace Quadtree {
 
         private string PrintData () {
             string str = "{ ";
-            if (!hasChildren) {
+            if (IsLeaf) {
                 foreach (KeyValuePair<Vector2D, T> entry in data) {
                     str += string.Format ("[{0} => {1}]; ", entry.Key, entry.Value);
                 }
@@ -176,7 +188,7 @@ namespace Quadtree {
 
         private string PrintChildren () {
             string str = "No children";
-            if (hasChildren) {
+            if (!IsLeaf) {
                 str = "";
                 foreach (RegionQuadtree<T> child in children) {
                     str += string.Format ("\n{0}", child.ToString ());
@@ -191,8 +203,8 @@ namespace Quadtree {
         Properties
          */
 
-        public bool HasChildren {
-            get => hasChildren;
+        public bool IsLeaf {
+            get => children[0] == null;
         }
 
         public uint Depth {
@@ -211,12 +223,8 @@ namespace Quadtree {
             get => region;
         }
 
-        public IQuadtree<T>[] Children {
-            get => children;
-        }
-
-        public Dictionary<Vector2D, T> Data {
-            get => data;
+        public ReadOnlyDictionary<Vector2D, T> Data {
+            get => new ReadOnlyDictionary<Vector2D, T> (data);
         }
     }
 }
