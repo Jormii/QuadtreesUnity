@@ -234,11 +234,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   testingPrefab: {fileID: 2740704968647216667, guid: d989b13c07cd3ca60a43f064fed13532,
     type: 3}
-  numberOfInstances: 5000
-  quadtreeMaxDepth: 5
+  numberOfInstances: 50000
+  quadtreeMaxDepth: 50000
   quadtreeBucketSize: 4
   quadtreeOrigin: {x: 0, y: 0}
-  originalHalfSize: {x: 20, y: 10}
+  originalHalfSize: {x: 10, y: 10}
 --- !u!4 &1873220204
 Transform:
   m_ObjectHideFlags: 0

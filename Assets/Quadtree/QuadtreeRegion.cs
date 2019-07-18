@@ -52,6 +52,5 @@ namespace Quadtree {
             return string.Format ("O: {0}, HS: {1}, ULC: {2}, LRC: {3}",
                 center, halfRegionSize, leftUpperCorner, rightLowerCorner);
         }
-
     }
 }

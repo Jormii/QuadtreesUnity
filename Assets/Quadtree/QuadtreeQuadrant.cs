@@ -1,6 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
 
 namespace Quadtree {
+
     public enum QuadtreeQuadrant {
         NorthEast, // First quadrant (+, +)
         SouthEast, // Second (+, -)
@@ -20,7 +21,5 @@ namespace Quadtree {
         public static bool YComponentIsPositive (this QuadtreeQuadrant quadrant) {
             return quadrant == QuadtreeQuadrant.NorthEast || quadrant == QuadtreeQuadrant.NorthWest;
         }
-
     }
-
 }

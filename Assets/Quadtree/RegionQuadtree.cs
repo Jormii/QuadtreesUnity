@@ -41,48 +41,69 @@ namespace Quadtree {
 
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
         private bool InsertInChild (Vector2D point, T pointData) {
-            for (int child = 0; child < children.Length; ++child) {
-                if (children[child].Region.ContainsPoint (point)) {
-                    return children[child].InsertPoint (point, pointData);
-                }
+            if (children[0].region.ContainsPoint (point)) {
+                return children[0].InsertPoint (point, pointData);
             }
+            if (children[1].region.ContainsPoint (point)) {
+                return children[1].InsertPoint (point, pointData);
+            }
+            if (children[2].region.ContainsPoint (point)) {
+                return children[2].InsertPoint (point, pointData);
+            }
+            if (children[3].region.ContainsPoint (point)) {
+                return children[3].InsertPoint (point, pointData);
+            }
+
             return false;
         }
 
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public bool ContainsPoint (Vector2D point) {
-            // Test
-            /*
-            if (!region.ContainsPoint (point)) {
-                return false;
-            }
-
-            if (IsLeaf) {
-                return data.ContainsKey (point);
-            }
-            */
-
-            // Test
             if (IsLeaf) {
                 return region.ContainsPoint (point) && data.ContainsKey (point);
             }
 
-            for (int child = 0; child < children.Length; ++child) {
-                if (children[child].ContainsPoint (point)) {
-                    return true;
-                }
+            if (children[0].ContainsPoint (point)) {
+                return true;
             }
+            if (children[1].ContainsPoint (point)) {
+                return true;
+            }
+            if (children[2].ContainsPoint (point)) {
+                return true;
+            }
+            if (children[3].ContainsPoint (point)) {
+                return true;
+            }
+
             return false;
         }
 
         public void Subdivide () {
-            for (QuadtreeQuadrant quadrant = QuadtreeQuadrant.NorthEast; quadrant < QuadtreeQuadrant.NumberOfQuadrants; ++quadrant) {
-                children[(int) quadrant] = new RegionQuadtree<T> (
-                    depth + 1,
-                    maximumDepth,
-                    bucketSize,
-                    CalculateChildRegion (quadrant)
-                );
-            }
+            children[0] = new RegionQuadtree<T> (
+                depth + 1,
+                maximumDepth,
+                bucketSize,
+                CalculateChildRegion ((QuadtreeQuadrant) 0)
+            );
+            children[1] = new RegionQuadtree<T> (
+                depth + 1,
+                maximumDepth,
+                bucketSize,
+                CalculateChildRegion ((QuadtreeQuadrant) 1)
+            );
+            children[2] = new RegionQuadtree<T> (
+                depth + 1,
+                maximumDepth,
+                bucketSize,
+                CalculateChildRegion ((QuadtreeQuadrant) 2)
+            );
+            children[3] = new RegionQuadtree<T> (
+                depth + 1,
+                maximumDepth,
+                bucketSize,
+                CalculateChildRegion ((QuadtreeQuadrant) 3)
+            );
 
             foreach (KeyValuePair<Vector2D, T> entry in data) {
                 InsertInChild (entry.Key, entry.Value);
@@ -122,13 +143,15 @@ namespace Quadtree {
             return children[(int) quadrant];
         }
 
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public void GetLeafNodes (List<IQuadtree<T>> outputList) {
             if (IsLeaf) {
                 outputList.Add (this);
             } else {
-                for (int child = 0; child < children.Length; ++child) {
-                    children[child].GetLeafNodes (outputList);
-                }
+                children[0].GetLeafNodes (outputList);
+                children[1].GetLeafNodes (outputList);
+                children[2].GetLeafNodes (outputList);
+                children[3].GetLeafNodes (outputList);
             }
         }
 

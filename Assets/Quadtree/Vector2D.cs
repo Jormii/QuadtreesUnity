@@ -63,6 +63,5 @@ namespace Quadtree {
         public static Vector2D operator / (float number, Vector2D vector) {
             return new Vector2D (vector.x / number, vector.y / number);
         }
-
     }
 }
