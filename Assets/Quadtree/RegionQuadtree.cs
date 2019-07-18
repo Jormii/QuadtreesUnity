@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Runtime.CompilerServices;
 
 namespace Quadtree {
     public class RegionQuadtree<T> : IQuadtree<T> {
@@ -7,30 +9,26 @@ namespace Quadtree {
         private readonly uint maximumDepth;
         private readonly uint bucketSize;
         private readonly QuadtreeRegion region;
-        private readonly RegionQuadtree<T>[] children;
-        private readonly Dictionary<Vector2D, T> data;
-        private bool hasChildren;
+        private readonly RegionQuadtree<T>[] children = new RegionQuadtree<T>[(int) QuadtreeQuadrant.NumberOfQuadrants];
+        private readonly Dictionary<Vector2D, T> data = new Dictionary<Vector2D, T> ();
 
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public RegionQuadtree (uint maximumDepth, uint bucketSize, QuadtreeRegion region) : this (0, maximumDepth, bucketSize, region) { }
 
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         private RegionQuadtree (uint depth, uint maximumDepth, uint bucketSize, QuadtreeRegion region) {
             this.depth = depth;
             this.maximumDepth = maximumDepth;
             this.bucketSize = bucketSize;
             this.region = region;
-            this.children = new RegionQuadtree<T>[(int) QuadtreeQuadrant.NumberOfQuadrants];
-            this.data = new Dictionary<Vector2D, T> ();
-            this.hasChildren = false;
         }
 
         public bool InsertPoint (Vector2D point, T pointData) {
-            if (ContainsPoint (point)) {
-                return false;
-            }
+            if (IsLeaf) {
+                if (!region.ContainsPoint (point) || data.ContainsKey (point)) {
+                    return false;
+                }
 
-            if (hasChildren) {
-                return InsertPointToRespectiveChild (point, pointData);
-            } else {
                 data.Add (point, pointData);
                 if (data.Count == bucketSize && depth != maximumDepth) {
                     Subdivide ();
@@ -38,82 +36,143 @@ namespace Quadtree {
                 return true;
             }
 
-            throw new System.Exception ("Error inserting point to quadtree");
+            return InsertInChild (point, pointData);
         }
 
-        private bool InsertPointToRespectiveChild (Vector2D point, T pointData) {
-            RegionQuadtree<T> childToInsert = CalculateRespectiveChild (point);
-            if (childToInsert == null) {
-                return false;
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        private bool InsertInChild (Vector2D point, T pointData) {
+            if (children[0].region.ContainsPoint (point)) {
+                return children[0].InsertPoint (point, pointData);
+            }
+            if (children[1].region.ContainsPoint (point)) {
+                return children[1].InsertPoint (point, pointData);
+            }
+            if (children[2].region.ContainsPoint (point)) {
+                return children[2].InsertPoint (point, pointData);
+            }
+            if (children[3].region.ContainsPoint (point)) {
+                return children[3].InsertPoint (point, pointData);
             }
 
-            return childToInsert.InsertPoint (point, pointData);
+            return false;
         }
 
-        private RegionQuadtree<T> CalculateRespectiveChild (Vector2D point) {
-            foreach (RegionQuadtree<T> child in children) {
-                if (child.Region.ContainsPoint (point)) {
-                    return child;
-                }
-            }
-
-            return null;
-        }
-
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public bool ContainsPoint (Vector2D point) {
-            if (!region.ContainsPoint (point)) {
-                return false;
+            if (IsLeaf) {
+                return region.ContainsPoint (point) && data.ContainsKey (point);
             }
 
-            if (hasChildren) {
-                foreach (RegionQuadtree<T> child in children) {
-                    if (child.ContainsPoint (point)) {
-                        return true;
-                    }
-                }
-                return false;
-            } else {
-                return data.ContainsKey (point);
+            if (children[0].ContainsPoint (point)) {
+                return true;
             }
+            if (children[1].ContainsPoint (point)) {
+                return true;
+            }
+            if (children[2].ContainsPoint (point)) {
+                return true;
+            }
+            if (children[3].ContainsPoint (point)) {
+                return true;
+            }
+
+            return false;
         }
 
         public void Subdivide () {
-            hasChildren = true;
-
-            for (QuadtreeQuadrant quadrant = QuadtreeQuadrant.NorthEast; quadrant < QuadtreeQuadrant.NumberOfQuadrants; ++quadrant) {
-                QuadtreeRegion childRegion = CalculateChildRegion (quadrant);
-                children[(int) quadrant] = new RegionQuadtree<T> (depth + 1, maximumDepth, bucketSize, childRegion);
-            }
+            children[0] = new RegionQuadtree<T> (
+                depth + 1,
+                maximumDepth,
+                bucketSize,
+                CalculateChildRegion ((QuadtreeQuadrant) 0)
+            );
+            children[1] = new RegionQuadtree<T> (
+                depth + 1,
+                maximumDepth,
+                bucketSize,
+                CalculateChildRegion ((QuadtreeQuadrant) 1)
+            );
+            children[2] = new RegionQuadtree<T> (
+                depth + 1,
+                maximumDepth,
+                bucketSize,
+                CalculateChildRegion ((QuadtreeQuadrant) 2)
+            );
+            children[3] = new RegionQuadtree<T> (
+                depth + 1,
+                maximumDepth,
+                bucketSize,
+                CalculateChildRegion ((QuadtreeQuadrant) 3)
+            );
 
             foreach (KeyValuePair<Vector2D, T> entry in data) {
-                InsertPointToRespectiveChild (entry.Key, entry.Value);
+                InsertInChild (entry.Key, entry.Value);
             }
             data.Clear ();
         }
 
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         private QuadtreeRegion CalculateChildRegion (QuadtreeQuadrant quadrant) {
-            Vector2D childHalfRegion = region.halfRegionSize / 2f;
-            Vector2D childCenter = CalculateChildCenter (quadrant, childHalfRegion);
+            Vector2D childHalfRegion = .5f * region.halfRegionSize;
 
-            return new QuadtreeRegion (childCenter, childHalfRegion);
+            return new QuadtreeRegion (
+                CalculateChildCenter (quadrant, childHalfRegion),
+                childHalfRegion
+            );
         }
 
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         private Vector2D CalculateChildCenter (QuadtreeQuadrant quadrant, Vector2D childHalfRegion) {
             int xSign = (quadrant.XComponentIsPositive ()) ? 1 : -1;
             int ySign = (quadrant.YComponentIsPositive ()) ? 1 : -1;
-            float centerXComponent = region.center.x + xSign * childHalfRegion.x;
-            float centerYComponent = region.center.y + ySign * childHalfRegion.y;
-            return new Vector2D (centerXComponent, centerYComponent);
+            return new Vector2D (
+                region.center.x + xSign * childHalfRegion.x,
+                region.center.y + ySign * childHalfRegion.y
+            );
         }
 
+        public IQuadtree<T> GetChild (QuadtreeQuadrant quadrant) {
+            if (quadrant == QuadtreeQuadrant.NumberOfQuadrants) {
+                throw new System.Exception ("Argument cannot be \"NumberOfRegions\"");
+            }
+
+            if (IsLeaf) {
+                throw new System.Exception ("Quadtree is leaf");
+            }
+
+            return children[(int) quadrant];
+        }
+
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public void GetLeafNodes (List<IQuadtree<T>> outputList) {
-            if (!hasChildren) {
+            if (IsLeaf) {
                 outputList.Add (this);
             } else {
-                foreach (IQuadtree<T> child in children) {
-                    child.GetLeafNodes (outputList);
-                }
+                children[0].GetLeafNodes (outputList);
+                children[1].GetLeafNodes (outputList);
+                children[2].GetLeafNodes (outputList);
+                children[3].GetLeafNodes (outputList);
             }
+        }
+
+        public override bool Equals (object obj) {
+            if (obj == null) {
+                return false;
+            }
+
+            if (!GetType ().Equals (obj.GetType ())) {
+                return false;
+            }
+
+            RegionQuadtree<T> otherQuadtree = (RegionQuadtree<T>) obj;
+            return bucketSize == otherQuadtree.bucketSize &&
+                data.Equals (otherQuadtree.data) &&
+                depth == otherQuadtree.depth &&
+                region.Equals (otherQuadtree.region);
+        }
+
+        public override int GetHashCode () {
+            return (bucketSize, data, depth, IsLeaf, region).GetHashCode ();
         }
 
         public override string ToString () {
@@ -133,7 +192,7 @@ namespace Quadtree {
 
         private string PrintData () {
             string str = "{ ";
-            if (!hasChildren) {
+            if (IsLeaf) {
                 foreach (KeyValuePair<Vector2D, T> entry in data) {
                     str += string.Format ("[{0} => {1}]; ", entry.Key, entry.Value);
                 }
@@ -144,7 +203,7 @@ namespace Quadtree {
 
         private string PrintChildren () {
             string str = "No children";
-            if (hasChildren) {
+            if (!IsLeaf) {
                 str = "";
                 foreach (RegionQuadtree<T> child in children) {
                     str += string.Format ("\n{0}", child.ToString ());
@@ -155,33 +214,12 @@ namespace Quadtree {
             return str + "]";
         }
 
-        public override bool Equals (object obj) {
-            if (obj == null) {
-                return false;
-            }
-
-            if (!GetType ().Equals (obj.GetType ())) {
-                return false;
-            }
-
-            RegionQuadtree<T> otherQuadtree = (RegionQuadtree<T>) obj;
-            return bucketSize == otherQuadtree.bucketSize &&
-                data.Equals (otherQuadtree.data) &&
-                depth == otherQuadtree.depth &&
-                hasChildren == otherQuadtree.hasChildren &&
-                region.Equals (otherQuadtree.region);
-        }
-
-        public override int GetHashCode () {
-            return (bucketSize, data, depth, hasChildren, region).GetHashCode ();
-        }
-
         /*
         Properties
          */
 
-        public bool HasChildren {
-            get => hasChildren;
+        public bool IsLeaf {
+            get => children[0] == null;
         }
 
         public uint Depth {
@@ -200,12 +238,8 @@ namespace Quadtree {
             get => region;
         }
 
-        public IQuadtree<T>[] Children {
-            get => children;
-        }
-
-        public Dictionary<Vector2D, T> Data {
-            get => data;
+        public ReadOnlyDictionary<Vector2D, T> Data {
+            get => new ReadOnlyDictionary<Vector2D, T> (data);
         }
     }
 }

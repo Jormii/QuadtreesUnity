@@ -1,18 +1,34 @@
-﻿namespace Quadtree {
+﻿using System.Runtime.CompilerServices;
+
+namespace Quadtree {
+
     public struct QuadtreeRegion {
+
         public readonly Vector2D center;
         public readonly Vector2D halfRegionSize;
+        public readonly Vector2D leftUpperCorner;
+        public readonly Vector2D rightLowerCorner;
 
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public QuadtreeRegion (Vector2D center, Vector2D halfRegionSize) {
             this.center = center;
             this.halfRegionSize = halfRegionSize;
+
+            this.leftUpperCorner = new Vector2D (
+                center.x - halfRegionSize.x,
+                center.y + halfRegionSize.y
+            );
+
+            this.rightLowerCorner = new Vector2D (
+                center.x + halfRegionSize.x,
+                center.y - halfRegionSize.y
+            );
         }
 
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public bool ContainsPoint (Vector2D point) {
-            bool containsXComponent = point.x >= LeftUpperCorner.x && point.x <= RightLowerCorner.x;
-            bool containsYComponent = point.y <= LeftUpperCorner.y && point.y >= RightLowerCorner.y;
-
-            return containsXComponent && containsYComponent;
+            return point.x >= leftUpperCorner.x && point.x <= rightLowerCorner.x &&
+                point.y <= leftUpperCorner.y && point.y >= rightLowerCorner.y;
         }
 
         public override bool Equals (object obj) {
@@ -29,31 +45,12 @@
         }
 
         public override int GetHashCode () {
-            return (center, halfRegionSize, LeftUpperCorner, RightLowerCorner).GetHashCode ();
+            return (center, halfRegionSize).GetHashCode ();
         }
 
         public override string ToString () {
-            return string.Format ("O: {0}, HS: {1}", center.ToString (), halfRegionSize.ToString ());
-        }
-
-        /*
-        Properties
-         */
-
-        public Vector2D LeftUpperCorner {
-            get {
-                float xComponent = center.x - halfRegionSize.x;
-                float yComponent = center.y + halfRegionSize.y;
-                return new Vector2D (xComponent, yComponent);
-            }
-        }
-
-        public Vector2D RightLowerCorner {
-            get {
-                float xComponent = center.x + halfRegionSize.x;
-                float yComponent = center.y - halfRegionSize.y;
-                return new Vector2D (xComponent, yComponent);
-            }
+            return string.Format ("O: {0}, HS: {1}, ULC: {2}, LRC: {3}",
+                center, halfRegionSize, leftUpperCorner, rightLowerCorner);
         }
     }
 }
