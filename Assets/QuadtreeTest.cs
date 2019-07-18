@@ -59,7 +59,7 @@ public class QuadtreeTest : MonoBehaviour {
         BuildQuadtree (colliders);
         QuadtreeCollisionChecking ();
         BruteForceCollisionChecking (colliders);
-
+        PrintDebugMessages ();
         // UnityEngine.Debug.LogWarning (quadtree);
     }
 
@@ -117,6 +117,21 @@ public class QuadtreeTest : MonoBehaviour {
         }
         bruteForceCollisionCheckingStopwatch.Stop ();
         UnityEngine.Debug.Log ("Time spent checking collisions (brute force): " + bruteForceCollisionCheckingStopwatch.Elapsed);
+    }
+
+    private static Dictionary<string, uint> debugs = new Dictionary<string, uint> ();
+
+    public static void AddDebugMessage (string message) {
+        if (debugs.ContainsKey (message)) {
+            debugs[message] += 1;
+        } else {
+            debugs.Add (message, 1);
+        }
+    }
+    private static void PrintDebugMessages () {
+        foreach (KeyValuePair<string, uint> entry in debugs.OrderByDescending (key => key.Value)) {
+            UnityEngine.Debug.LogFormat ("[ {0} => {1} ]", entry.Key, entry.Value);
+        }
     }
 
 }

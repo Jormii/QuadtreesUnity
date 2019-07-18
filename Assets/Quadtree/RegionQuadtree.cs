@@ -32,16 +32,16 @@ namespace Quadtree {
                     Subdivide ();
                 }
                 return true;
-            } else {
-                return InsertInChild (point, pointData);
             }
+
+            return InsertInChild (point, pointData);
         }
 
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
         private bool InsertInChild (Vector2D point, T pointData) {
-            foreach (RegionQuadtree<T> child in children) {
-                if (child.Region.ContainsPoint (point)) {
-                    return child.InsertPoint (point, pointData);
+            for (int child = 0; child < children.Length; ++child) {
+                if (children[child].Region.ContainsPoint (point)) {
+                    return children[child].InsertPoint (point, pointData);
                 }
             }
             return false;
@@ -54,14 +54,15 @@ namespace Quadtree {
 
             if (IsLeaf) {
                 return data.ContainsKey (point);
-            } else {
-                foreach (RegionQuadtree<T> child in children) {
-                    if (child.ContainsPoint (point)) {
-                        return true;
-                    }
-                }
-                return false;
             }
+
+            for (int child = 0; child < children.Length; ++child) {
+                if (children[child].ContainsPoint (point)) {
+                    return true;
+                }
+            }
+            return false;
+
         }
 
         public void Subdivide () {
@@ -107,8 +108,8 @@ namespace Quadtree {
             if (IsLeaf) {
                 outputList.Add (this);
             } else {
-                foreach (IQuadtree<T> child in children) {
-                    child.GetLeafNodes (outputList);
+                for (int child = 0; child < children.Length; ++child) {
+                    children[child].GetLeafNodes (outputList);
                 }
             }
         }
