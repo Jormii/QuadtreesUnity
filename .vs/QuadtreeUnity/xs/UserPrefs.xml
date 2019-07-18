@@ -1,0 +1,29 @@
+﻿<Properties StartupConfiguration="{57D89FED-FE84-4985-AA01-0BC513E24FC6}|Pruebas unitarias">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Quadtree/RegionQuadtree.cs">
+    <Files>
+      <File FileName="Assets/Quadtree/RegionQuadtree.cs" Line="3" Column="39" />
+    </Files>
+    <Pads>
+      <Pad Id="ProjectPad">
+        <State name="__root__">
+          <Node name="QuadtreeUnity" expanded="True">
+            <Node name="Assembly-CSharp" expanded="True">
+              <Node name="Assets" expanded="True">
+                <Node name="Quadtree" expanded="True">
+                  <Node name="RegionQuadtree.cs" selected="True" />
+                </Node>
+              </Node>
+            </Node>
+          </Node>
+        </State>
+      </Pad>
+    </Pads>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.ItemProperties.Assembly-CSharp PreferredExecutionTarget="MonoDevelop.Default" />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MultiItemStartupConfigurations />
+</Properties>

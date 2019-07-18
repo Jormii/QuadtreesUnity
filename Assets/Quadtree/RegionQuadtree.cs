@@ -8,22 +8,22 @@ namespace Quadtree {
         private readonly uint depth;
         private readonly uint maximumDepth;
         private readonly uint bucketSize;
-        private readonly QuadtreeRegion region;
-        private readonly RegionQuadtree<T>[] children = new RegionQuadtree<T>[(int) QuadtreeQuadrant.NumberOfQuadrants];
-        private readonly Dictionary<Vector2D, T> data = new Dictionary<Vector2D, T> ();
+        private readonly QRegion region;
+        private readonly RegionQuadtree<T>[] children = new RegionQuadtree<T>[(int) QQuadrant.NumberOfQuadrants];
+        private readonly Dictionary<QVector2D, T> data = new Dictionary<QVector2D, T> ();
 
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
-        public RegionQuadtree (uint maximumDepth, uint bucketSize, QuadtreeRegion region) : this (0, maximumDepth, bucketSize, region) { }
+        public RegionQuadtree (uint maximumDepth, uint bucketSize, QRegion region) : this (0, maximumDepth, bucketSize, region) { }
 
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
-        private RegionQuadtree (uint depth, uint maximumDepth, uint bucketSize, QuadtreeRegion region) {
+        private RegionQuadtree (uint depth, uint maximumDepth, uint bucketSize, QRegion region) {
             this.depth = depth;
             this.maximumDepth = maximumDepth;
             this.bucketSize = bucketSize;
             this.region = region;
         }
 
-        public bool InsertPoint (Vector2D point, T pointData) {
+        public bool InsertPoint (QVector2D point, T pointData) {
             if (IsLeaf) {
                 if (!region.ContainsPoint (point) || data.ContainsKey (point)) {
                     return false;
@@ -40,7 +40,7 @@ namespace Quadtree {
         }
 
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
-        private bool InsertInChild (Vector2D point, T pointData) {
+        private bool InsertInChild (QVector2D point, T pointData) {
             if (children[0].region.ContainsPoint (point)) {
                 return children[0].InsertPoint (point, pointData);
             }
@@ -58,7 +58,7 @@ namespace Quadtree {
         }
 
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
-        public bool ContainsPoint (Vector2D point) {
+        public bool ContainsPoint (QVector2D point) {
             if (IsLeaf) {
                 return region.ContainsPoint (point) && data.ContainsKey (point);
             }
@@ -84,55 +84,55 @@ namespace Quadtree {
                 depth + 1,
                 maximumDepth,
                 bucketSize,
-                CalculateChildRegion ((QuadtreeQuadrant) 0)
+                CalculateChildRegion ((QQuadrant) 0)
             );
             children[1] = new RegionQuadtree<T> (
                 depth + 1,
                 maximumDepth,
                 bucketSize,
-                CalculateChildRegion ((QuadtreeQuadrant) 1)
+                CalculateChildRegion ((QQuadrant) 1)
             );
             children[2] = new RegionQuadtree<T> (
                 depth + 1,
                 maximumDepth,
                 bucketSize,
-                CalculateChildRegion ((QuadtreeQuadrant) 2)
+                CalculateChildRegion ((QQuadrant) 2)
             );
             children[3] = new RegionQuadtree<T> (
                 depth + 1,
                 maximumDepth,
                 bucketSize,
-                CalculateChildRegion ((QuadtreeQuadrant) 3)
+                CalculateChildRegion ((QQuadrant) 3)
             );
 
-            foreach (KeyValuePair<Vector2D, T> entry in data) {
+            foreach (KeyValuePair<QVector2D, T> entry in data) {
                 InsertInChild (entry.Key, entry.Value);
             }
             data.Clear ();
         }
 
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
-        private QuadtreeRegion CalculateChildRegion (QuadtreeQuadrant quadrant) {
-            Vector2D childHalfRegion = .5f * region.halfRegionSize;
+        private QRegion CalculateChildRegion (QQuadrant quadrant) {
+            QVector2D childHalfRegion = .5f * region.halfRegionSize;
 
-            return new QuadtreeRegion (
+            return new QRegion (
                 CalculateChildCenter (quadrant, childHalfRegion),
                 childHalfRegion
             );
         }
 
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
-        private Vector2D CalculateChildCenter (QuadtreeQuadrant quadrant, Vector2D childHalfRegion) {
+        private QVector2D CalculateChildCenter (QQuadrant quadrant, QVector2D childHalfRegion) {
             int xSign = (quadrant.XComponentIsPositive ()) ? 1 : -1;
             int ySign = (quadrant.YComponentIsPositive ()) ? 1 : -1;
-            return new Vector2D (
+            return new QVector2D (
                 region.center.x + xSign * childHalfRegion.x,
                 region.center.y + ySign * childHalfRegion.y
             );
         }
 
-        public IQuadtree<T> GetChild (QuadtreeQuadrant quadrant) {
-            if (quadrant == QuadtreeQuadrant.NumberOfQuadrants) {
+        public IQuadtree<T> GetChild (QQuadrant quadrant) {
+            if (quadrant == QQuadrant.NumberOfQuadrants) {
                 throw new System.Exception ("Argument cannot be \"NumberOfRegions\"");
             }
 
@@ -193,7 +193,7 @@ namespace Quadtree {
         private string PrintData () {
             string str = "{ ";
             if (IsLeaf) {
-                foreach (KeyValuePair<Vector2D, T> entry in data) {
+                foreach (KeyValuePair<QVector2D, T> entry in data) {
                     str += string.Format ("[{0} => {1}]; ", entry.Key, entry.Value);
                 }
             }
@@ -206,7 +206,7 @@ namespace Quadtree {
             if (!IsLeaf) {
                 str = "";
                 foreach (RegionQuadtree<T> child in children) {
-                    str += string.Format ("\n{0}", child.ToString ());
+                    str += string.Format ("\n{0}", child);
                 }
                 str += PrintTabs ();
             }
@@ -234,12 +234,12 @@ namespace Quadtree {
             get => bucketSize;
         }
 
-        public QuadtreeRegion Region {
+        public QRegion Region {
             get => region;
         }
 
-        public ReadOnlyDictionary<Vector2D, T> Data {
-            get => new ReadOnlyDictionary<Vector2D, T> (data);
+        public ReadOnlyDictionary<QVector2D, T> Data {
+            get => new ReadOnlyDictionary<QVector2D, T> (data);
         }
     }
 }

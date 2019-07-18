@@ -56,10 +56,10 @@
   </ItemGroup>
   <ItemGroup>
      <Compile Include="Assets\Quadtree\IQuadtree.cs" />
-     <Compile Include="Assets\Quadtree\QuadtreeQuadrant.cs" />
-     <Compile Include="Assets\Quadtree\QuadtreeRegion.cs" />
+     <Compile Include="Assets\Quadtree\QQuadrant.cs" />
+     <Compile Include="Assets\Quadtree\QRegion.cs" />
+     <Compile Include="Assets\Quadtree\QVector2D.cs" />
      <Compile Include="Assets\Quadtree\RegionQuadtree.cs" />
-     <Compile Include="Assets\Quadtree\Vector2D.cs" />
      <Compile Include="Assets\QuadtreeTest.cs" />
  <Reference Include="Unity.Timeline.Editor">
  <HintPath>/home/jorge/Escritorio/Programas/QuadtreeUnity/Library/ScriptAssemblies/Unity.Timeline.Editor.dll</HintPath>
