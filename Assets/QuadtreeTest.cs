@@ -6,8 +6,7 @@ using UnityEngine;
 
 public class QuadtreeTest : MonoBehaviour {
 
-    public enum SpawnType
-    {
+    public enum SpawnType {
         RandomSquare,
         RandomCircle,
         Diagonal
@@ -56,17 +55,16 @@ public class QuadtreeTest : MonoBehaviour {
     void Start () {
         BoxCollider[] colliders = new BoxCollider[numberOfInstances];
         for (int i = 0; i < numberOfInstances; ++i) {
-            Vector2 position = new Vector2();
-            switch (spawnType)
-            {
+            Vector2 position = new Vector2 ();
+            switch (spawnType) {
                 case SpawnType.RandomSquare:
-                    position = GetRandomPositionInSquare();
+                    position = GetRandomPositionInSquare ();
                     break;
                 case SpawnType.RandomCircle:
-                    position = GetRandomPositionInCircle();
+                    position = GetRandomPositionInCircle ();
                     break;
                 case SpawnType.Diagonal:
-                    position = GetPositionInDiagonal(i);
+                    position = GetPositionInDiagonal (i);
                     break;
             }
             colliders[i] = Instantiate<BoxCollider> (testingPrefab, position, Quaternion.identity);
@@ -77,9 +75,8 @@ public class QuadtreeTest : MonoBehaviour {
         BruteForceCollisionChecking (colliders);
         PrintDebugMessages ();
 
-        if (printQuadtree)
-        {
-            UnityEngine.Debug.LogWarning(quadtree);
+        if (printQuadtree) {
+            UnityEngine.Debug.LogWarning (quadtree);
         }
     }
 
@@ -91,7 +88,7 @@ public class QuadtreeTest : MonoBehaviour {
     }
 
     private Vector2 GetRandomPositionInCircle () {
-        return Random.insideUnitCircle * System.Math.Min(quadtreeHalfSize.x, quadtreeHalfSize.y);
+        return Random.insideUnitCircle * System.Math.Min (quadtreeHalfSize.x, quadtreeHalfSize.y);
     }
 
     private Vector2 GetPositionInDiagonal (int index) {
@@ -104,7 +101,7 @@ public class QuadtreeTest : MonoBehaviour {
     private void BuildQuadtree (BoxCollider[] colliders) {
         QVector2D origin = new QVector2D (quadtreeOrigin.x, quadtreeOrigin.y);
         QVector2D halfSize = new QVector2D (quadtreeHalfSize.x, quadtreeHalfSize.y);
-        quadtree = new RegionQuadtree<QVector2D> (quadtreeMaxDepth, quadtreeBucketSize, new QRegion(origin, halfSize));
+        quadtree = new RegionQuadtree<QVector2D> (quadtreeMaxDepth, quadtreeBucketSize, new QRegion (origin, halfSize));
 
         Stopwatch treeBuildingStopwatch = Stopwatch.StartNew ();
         foreach (BoxCollider bc in colliders) {
