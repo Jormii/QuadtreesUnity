@@ -52,7 +52,7 @@ public class QuadtreeTest : MonoBehaviour {
     void Start () {
         BoxCollider[] colliders = new BoxCollider[numberOfInstances];
         for (int i = 0; i < numberOfInstances; ++i) {
-            Vector2 position = GetRandomPosition ();
+            Vector2 position = GetRandomPositionInSquare ();
             colliders[i] = Instantiate<BoxCollider> (testingPrefab, position, Quaternion.identity);
         }
 
@@ -63,8 +63,16 @@ public class QuadtreeTest : MonoBehaviour {
         // UnityEngine.Debug.LogWarning (quadtree);
     }
 
-    private Vector2 GetRandomPosition () {
-        return Random.insideUnitCircle * System.Math.Min (originalHalfSize.x, originalHalfSize.y);
+    private Vector2 GetRandomPositionInSquare () {
+        return new Vector2 (
+            Random.Range (quadtreeOrigin.x - originalHalfSize.x, quadtreeOrigin.x + originalHalfSize.x),
+            Random.Range (quadtreeOrigin.y - originalHalfSize.y, quadtreeOrigin.y + originalHalfSize.y)
+        );
+    }
+
+    private Vector2 GetRandomPositionInCircle () {
+        float radius = System.Math.Min (originalHalfSize.x, originalHalfSize.y);
+        return Random.insideUnitCircle * radius;
     }
 
     private Vector2 GetPositionInDiagonal (int index) {

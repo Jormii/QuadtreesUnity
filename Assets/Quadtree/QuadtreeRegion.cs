@@ -9,6 +9,7 @@ namespace Quadtree {
         public readonly Vector2D leftUpperCorner;
         public readonly Vector2D rightLowerCorner;
 
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public QuadtreeRegion (Vector2D center, Vector2D halfRegionSize) {
             this.center = center;
             this.halfRegionSize = halfRegionSize;
