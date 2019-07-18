@@ -18,7 +18,7 @@ namespace Quadtree {
         public readonly float y;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="T:Quadtree.QVector2D"/> struct.
+        /// Initializes a new instance of the QVector2D struct.
         /// </summary>
         /// <param name="x">The x component.</param>
         /// <param name="y">The y component.</param>

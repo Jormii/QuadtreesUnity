@@ -6,20 +6,25 @@ using UnityEngine;
 
 public class QuadtreeTest : MonoBehaviour {
 
+    public enum SpawnType
+    {
+        RandomSquare,
+        RandomCircle,
+        Diagonal
+    }
+
     public BoxCollider testingPrefab;
     public uint numberOfInstances = 10000;
+    public SpawnType spawnType = SpawnType.RandomSquare;
+
     public uint quadtreeMaxDepth = 5;
     public uint quadtreeBucketSize = 4;
     public Vector2 quadtreeOrigin = new Vector2 (0, 0);
-    public Vector2 originalHalfSize = new Vector2 (100, 100);
+    public Vector2 quadtreeHalfSize = new Vector2 (100, 100);
+
+    public bool printQuadtree = false;
 
     private IQuadtree<QVector2D> quadtree;
-
-    public readonly Color quadtreeFirstCenterColor = Color.red;
-    public readonly Color quadtreeCenterColor = Color.magenta;
-    public readonly Color gridColor = Color.green;
-    public readonly Color prefabCenterColor = Color.white;
-    public const float radius = 0.15f;
 
     private void OnDrawGizmosSelected () {
         if (quadtree == null) {
@@ -32,11 +37,10 @@ public class QuadtreeTest : MonoBehaviour {
     }
 
     private void PaintQuadtree<T> (IQuadtree<T> tree) {
-        Gizmos.color = (tree.Depth == 0) ? quadtreeFirstCenterColor : quadtreeCenterColor;
         Vector2 center = new Vector2 (tree.Region.center.x, tree.Region.center.y);
 
         if (tree.IsLeaf) {
-            Gizmos.color = gridColor;
+            Gizmos.color = Color.green;
             Vector2 size = new Vector2 (
                 tree.Region.halfRegionSize.x * 2f,
                 tree.Region.halfRegionSize.y * 2f
@@ -52,50 +56,60 @@ public class QuadtreeTest : MonoBehaviour {
     void Start () {
         BoxCollider[] colliders = new BoxCollider[numberOfInstances];
         for (int i = 0; i < numberOfInstances; ++i) {
-            Vector2 position = GetRandomPositionInCircle ();
+            Vector2 position = new Vector2();
+            switch (spawnType)
+            {
+                case SpawnType.RandomSquare:
+                    position = GetRandomPositionInSquare();
+                    break;
+                case SpawnType.RandomCircle:
+                    position = GetRandomPositionInCircle();
+                    break;
+                case SpawnType.Diagonal:
+                    position = GetPositionInDiagonal(i);
+                    break;
+            }
             colliders[i] = Instantiate<BoxCollider> (testingPrefab, position, Quaternion.identity);
         }
 
         BuildQuadtree (colliders);
         QuadtreeCollisionChecking ();
         BruteForceCollisionChecking (colliders);
-        // CheckIfGameObjectsExistInQuadtree (colliders);
         PrintDebugMessages ();
-        // UnityEngine.Debug.LogWarning (quadtree);
+
+        if (printQuadtree)
+        {
+            UnityEngine.Debug.LogWarning(quadtree);
+        }
     }
 
     private Vector2 GetRandomPositionInSquare () {
         return new Vector2 (
-            Random.Range (quadtreeOrigin.x - originalHalfSize.x, quadtreeOrigin.x + originalHalfSize.x),
-            Random.Range (quadtreeOrigin.y - originalHalfSize.y, quadtreeOrigin.y + originalHalfSize.y)
+            Random.Range (quadtreeOrigin.x - quadtreeHalfSize.x, quadtreeOrigin.x + quadtreeHalfSize.x),
+            Random.Range (quadtreeOrigin.y - quadtreeHalfSize.y, quadtreeOrigin.y + quadtreeHalfSize.y)
         );
     }
 
     private Vector2 GetRandomPositionInCircle () {
-        float radius = System.Math.Min (originalHalfSize.x, originalHalfSize.y);
-        return Random.insideUnitCircle * radius;
+        return Random.insideUnitCircle * System.Math.Min(quadtreeHalfSize.x, quadtreeHalfSize.y);
     }
 
     private Vector2 GetPositionInDiagonal (int index) {
         return new Vector2 (
-            Mathf.Lerp (-originalHalfSize.x, originalHalfSize.x, (float) index / numberOfInstances),
-            Mathf.Lerp (-originalHalfSize.y, originalHalfSize.y, (float) index / numberOfInstances)
+            Mathf.Lerp (-quadtreeHalfSize.x, quadtreeHalfSize.x, (float) index / numberOfInstances),
+            Mathf.Lerp (-quadtreeHalfSize.y, quadtreeHalfSize.y, (float) index / numberOfInstances)
         );
     }
 
     private void BuildQuadtree (BoxCollider[] colliders) {
         QVector2D origin = new QVector2D (quadtreeOrigin.x, quadtreeOrigin.y);
-        QVector2D halfSize = new QVector2D (originalHalfSize.x, originalHalfSize.y);
-        QRegion region = new QRegion (origin, halfSize);
-        quadtree = new RegionQuadtree<QVector2D> (quadtreeMaxDepth, quadtreeBucketSize, region);
+        QVector2D halfSize = new QVector2D (quadtreeHalfSize.x, quadtreeHalfSize.y);
+        quadtree = new RegionQuadtree<QVector2D> (quadtreeMaxDepth, quadtreeBucketSize, new QRegion(origin, halfSize));
 
         Stopwatch treeBuildingStopwatch = Stopwatch.StartNew ();
         foreach (BoxCollider bc in colliders) {
             QVector2D point = new QVector2D (bc.transform.position.x, bc.transform.position.y);
-            bool inserted = quadtree.InsertPoint (point, point);
-            if (!inserted) {
-                // UnityEngine.Debug.LogWarning ("");
-            }
+            quadtree.InsertPoint (point, point);
         }
         treeBuildingStopwatch.Stop ();
         UnityEngine.Debug.Log ("Time spent building the quadtree: " + treeBuildingStopwatch.Elapsed);
@@ -114,7 +128,7 @@ public class QuadtreeTest : MonoBehaviour {
             }
         }
         collisionCheckingStopwatch.Stop ();
-        UnityEngine.Debug.Log ("Time spent checking collisions (with quadtree): " + collisionCheckingStopwatch.Elapsed);
+        UnityEngine.Debug.Log ("Time spent checking collisions (using quadtree): " + collisionCheckingStopwatch.Elapsed);
     }
 
     private void BruteForceCollisionChecking (BoxCollider[] colliders) {
@@ -128,18 +142,7 @@ public class QuadtreeTest : MonoBehaviour {
         UnityEngine.Debug.Log ("Time spent checking collisions (brute force): " + bruteForceCollisionCheckingStopwatch.Elapsed);
     }
 
-    private void CheckIfGameObjectsExistInQuadtree (BoxCollider[] colliders) {
-        for (int i = 0; i < numberOfInstances; ++i) {
-            QVector2D point = new QVector2D (
-                colliders[i].transform.position.x,
-                colliders[i].transform.position.y
-            );
-            if (!quadtree.ContainsPoint (point)) {
-                AddDebugMessage ("Quadtree does not contain a point");
-            }
-        }
-    }
-
+    // Remove
     private static Dictionary<string, uint> debugs = new Dictionary<string, uint> ();
 
     public static void AddDebugMessage (string message) {

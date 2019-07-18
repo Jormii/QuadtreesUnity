@@ -3,7 +3,7 @@
 namespace Quadtree {
 
     /// <summary>
-    /// Represents a region of the quadtree. A region is represented by its center and the half of its size.
+    /// The rectangular region a quadtree covers. A region is represented by its center and the half of its size.
     /// </summary>
     public struct QRegion {
 
@@ -28,10 +28,10 @@ namespace Quadtree {
         public readonly QVector2D rightLowerCorner;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="T:Quadtree.QRegion"/> struct.
+        /// Initializes a new instance of the QRegion struct.
         /// </summary>
         /// <param name="center">The center of the region.</param>
-        /// <param name="halfRegionSize">The half size of the region.</param>
+        /// <param name="halfRegionSize">Half the size of the region.</param>
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public QRegion (QVector2D center, QVector2D halfRegionSize) {
             this.center = center;
@@ -51,8 +51,8 @@ namespace Quadtree {
         /// <summary>
         /// Checks if the given point is contained in the region.
         /// </summary>
-        /// <returns><c>true</c>, if point was contained, <c>false</c> otherwise.</returns>
-        /// <param name="point">A point.</param>
+        /// <returns>True, if the point was contained, False otherwise.</returns>
+        /// <param name="point">The point to check.</param>
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public bool ContainsPoint (QVector2D point) {
             return point.x >= leftUpperCorner.x && point.x <= rightLowerCorner.x &&

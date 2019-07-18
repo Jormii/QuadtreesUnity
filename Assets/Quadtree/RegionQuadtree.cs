@@ -1,20 +1,38 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace Quadtree {
+
+    /// <summary>
+    /// Implements a region quadtree.
+    /// </summary>
     public class RegionQuadtree<T> : IQuadtree<T> {
 
         private readonly uint depth;
         private readonly uint maximumDepth;
         private readonly uint bucketSize;
         private readonly QRegion region;
-        private readonly RegionQuadtree<T>[] children = new RegionQuadtree<T>[(int) QQuadrant.NumberOfQuadrants];
+        private readonly RegionQuadtree<T>[] children = new RegionQuadtree<T>[4];
         private readonly Dictionary<QVector2D, T> data = new Dictionary<QVector2D, T> ();
 
+        /// <summary>
+        /// Initializes a new instance of the RegionQuadtree class.
+        /// </summary>
+        /// <param name="maximumDepth">Maximum depth the quadtree may reach.</param>
+        /// <param name="bucketSize">Bucket size of the quadtree.</param>
+        /// <param name="region">Initial region of the quadtree.</param>
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public RegionQuadtree (uint maximumDepth, uint bucketSize, QRegion region) : this (0, maximumDepth, bucketSize, region) { }
 
+        /// <summary>
+        /// Initializes a new instance of the RegionQuadtree class.
+        /// </summary>
+        /// <param name="depth">Depth of this node.</param>
+        /// <param name="maximumDepth">Maximum depth the quadtree may reach.</param>
+        /// <param name="bucketSize">Bucket size of the quadtree.</param>
+        /// <param name="region">Region of the quadtree.</param>
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
         private RegionQuadtree (uint depth, uint maximumDepth, uint bucketSize, QRegion region) {
             this.depth = depth;
@@ -39,6 +57,12 @@ namespace Quadtree {
             return InsertInChild (point, pointData);
         }
 
+        /// <summary>
+        /// Inserts the given point in the corresponding child.
+        /// </summary>
+        /// <returns>True, if the point was inserted, False otherwise.</returns>
+        /// <param name="point">The point to insert.</param>
+        /// <param name="pointData">The data associated with this point.</param>
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
         private bool InsertInChild (QVector2D point, T pointData) {
             if (children[0].region.ContainsPoint (point)) {
@@ -60,7 +84,7 @@ namespace Quadtree {
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public bool ContainsPoint (QVector2D point) {
             if (IsLeaf) {
-                return region.ContainsPoint (point) && data.ContainsKey (point);
+                return data.ContainsKey (point);
             }
 
             if (children[0].ContainsPoint (point)) {
@@ -111,6 +135,11 @@ namespace Quadtree {
             data.Clear ();
         }
 
+        /// <summary>
+        /// Calculates the region of the child associated to the given quadrant.
+        /// </summary>
+        /// <returns>The child region.</returns>
+        /// <param name="quadrant">The quadrant of the child.</param>
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
         private QRegion CalculateChildRegion (QQuadrant quadrant) {
             QVector2D childHalfRegion = .5f * region.halfRegionSize;
@@ -121,6 +150,12 @@ namespace Quadtree {
             );
         }
 
+        /// <summary>
+        /// Calculates the center of the child's region.
+        /// </summary>
+        /// <returns>The child's region center.</returns>
+        /// <param name="quadrant">The quadrant of the child.</param>
+        /// <param name="childHalfRegion">Child's region's half size.</param>
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
         private QVector2D CalculateChildCenter (QQuadrant quadrant, QVector2D childHalfRegion) {
             int xSign = (quadrant.XComponentIsPositive ()) ? 1 : -1;
@@ -177,46 +212,48 @@ namespace Quadtree {
 
         public override string ToString () {
             string tabs = PrintTabs ();
-            return string.Format ("{0}RQ. Depth: {1}. Region: [{2}].\n{3}Data: {4}.\n{5}Children: [{6}\n",
+            return string.Format ("{0}RQ. Depth: {1}. Region: [{2}].\n{3}Data: {4}.\n{5}Children: {6}\n",
                 tabs, depth, region, tabs, PrintData (), tabs, PrintChildren ());
         }
 
         private string PrintTabs () {
-            string str = "";
+            StringBuilder tabs = new StringBuilder ();
             for (int i = 0; i < depth; ++i) {
-                str += "\t";
+                tabs.Append ('\t');
             }
 
-            return str;
+            return tabs.ToString ();
         }
 
         private string PrintData () {
-            string str = "{ ";
+            StringBuilder dataString = new StringBuilder ("{ ");
             if (IsLeaf) {
                 foreach (KeyValuePair<QVector2D, T> entry in data) {
-                    str += string.Format ("[{0} => {1}]; ", entry.Key, entry.Value);
+                    dataString.AppendFormat ("[{0} => {1}]; ", entry.Key, entry.Value);
                 }
             }
+            dataString.AppendLine (" }");
 
-            return str + " }";
+            return dataString.ToString ();
         }
 
         private string PrintChildren () {
-            string str = "No children";
             if (!IsLeaf) {
-                str = "";
+                StringBuilder childrenString = new StringBuilder ("[");
                 foreach (RegionQuadtree<T> child in children) {
-                    str += string.Format ("\n{0}", child);
+                    childrenString.AppendFormat ("\n{0}", child);
                 }
-                str += PrintTabs ();
+                childrenString.Append (PrintTabs ());
+                childrenString.Append ("]");
+                return childrenString.ToString ();
             }
 
-            return str + "]";
+            return "No children";
         }
 
         /*
         Properties
-         */
+        */
 
         public bool IsLeaf {
             get => children[0] == null;
