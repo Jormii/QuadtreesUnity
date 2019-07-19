@@ -12,7 +12,7 @@ This project is being developed in Unity 2019.1.5f1, in Linux. However, the quad
 - [ ] Compressed quadtree.
 
 ## Contents of the unity package
-Latest realease: [Version 1.0]().
+Latest realease: [Version 1.0](https://github.com/Jormii/QuadtreeUnity/releases/tag/v1.0).
 
 The unity package provides:
 - Quadtree's source code.
