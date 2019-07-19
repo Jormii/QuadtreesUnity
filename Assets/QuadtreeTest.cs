@@ -6,6 +6,11 @@ using UnityEngine;
 
 public class QuadtreeTest : MonoBehaviour {
 
+    public enum QuadtreeType {
+        RegionQuadtree,
+        PointQuadtree
+    }
+
     public enum SpawnType {
         RandomSquare,
         RandomCircle,
@@ -16,6 +21,7 @@ public class QuadtreeTest : MonoBehaviour {
     public uint numberOfInstances = 10000;
     public SpawnType spawnType = SpawnType.RandomSquare;
 
+    public QuadtreeType quadtreeType = QuadtreeType.RegionQuadtree;
     public uint quadtreeMaxDepth = 5;
     public uint quadtreeBucketSize = 4;
     public Vector2 quadtreeOrigin = new Vector2 (0, 0);
@@ -99,9 +105,7 @@ public class QuadtreeTest : MonoBehaviour {
     }
 
     private void BuildQuadtree (BoxCollider[] colliders) {
-        QVector2D origin = new QVector2D (quadtreeOrigin.x, quadtreeOrigin.y);
-        QVector2D halfSize = new QVector2D (quadtreeHalfSize.x, quadtreeHalfSize.y);
-        quadtree = new RegionQuadtree<QVector2D> (quadtreeMaxDepth, quadtreeBucketSize, new QRegion (origin, halfSize));
+        CreateQuadtree ();
 
         Stopwatch treeBuildingStopwatch = Stopwatch.StartNew ();
         foreach (BoxCollider bc in colliders) {
@@ -110,6 +114,21 @@ public class QuadtreeTest : MonoBehaviour {
         }
         treeBuildingStopwatch.Stop ();
         UnityEngine.Debug.Log ("Time spent building the quadtree: " + treeBuildingStopwatch.Elapsed);
+    }
+
+    private void CreateQuadtree () {
+        QVector2D origin = new QVector2D (quadtreeOrigin.x, quadtreeOrigin.y);
+        QVector2D halfSize = new QVector2D (quadtreeHalfSize.x, quadtreeHalfSize.y);
+        QRegion region = new QRegion (origin, halfSize);
+
+        switch (quadtreeType) {
+            case QuadtreeType.RegionQuadtree:
+                quadtree = new RegionQuadtree<QVector2D> (quadtreeMaxDepth, quadtreeBucketSize, region);
+                break;
+            case QuadtreeType.PointQuadtree:
+                quadtree = new PointQuadtree<QVector2D> (quadtreeMaxDepth, region);
+                break;
+        }
     }
 
     private void QuadtreeCollisionChecking () {

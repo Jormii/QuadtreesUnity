@@ -23,9 +23,19 @@ namespace Quadtree {
         public readonly QVector2D leftUpperCorner;
 
         /// <summary>
+        /// The upper right corner of the region. Read-only.
+        /// </summary>
+        public readonly QVector2D rightUpperCorner;
+
+        /// <summary>
         /// The right lower corner of the region. Read-only.
         /// </summary>
         public readonly QVector2D rightLowerCorner;
+
+        /// <summary>
+        /// The left lower corner of the region. Read-only.
+        /// </summary>
+        public readonly QVector2D leftLowerCorner;
 
         /// <summary>
         /// Initializes a new instance of the QRegion struct.
@@ -42,8 +52,18 @@ namespace Quadtree {
                 center.y + halfRegionSize.y
             );
 
+            this.rightUpperCorner = new QVector2D (
+                center.x + halfRegionSize.x,
+                center.y + halfRegionSize.y
+            );
+
             this.rightLowerCorner = new QVector2D (
                 center.x + halfRegionSize.x,
+                center.y - halfRegionSize.y
+            );
+
+            this.leftLowerCorner = new QVector2D (
+                center.x - halfRegionSize.x,
                 center.y - halfRegionSize.y
             );
         }
@@ -77,8 +97,8 @@ namespace Quadtree {
         }
 
         public override string ToString () {
-            return string.Format ("O: {0}, HS: {1}, ULC: {2}, LRC: {3}",
-                center, halfRegionSize, leftUpperCorner, rightLowerCorner);
+            return string.Format ("O: {0}, HS: {1}, ULC: {2}, URC: {3}, LRC: {4}, LLC: {5}",
+                center, halfRegionSize, leftUpperCorner, rightUpperCorner, rightLowerCorner, leftLowerCorner);
         }
     }
 }

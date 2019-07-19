@@ -158,8 +158,8 @@ namespace Quadtree {
         /// <param name="childHalfRegion">Child's region's half size.</param>
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
         private QVector2D CalculateChildCenter (QQuadrant quadrant, QVector2D childHalfRegion) {
-            int xSign = (quadrant.XComponentIsPositive ()) ? 1 : -1;
-            int ySign = (quadrant.YComponentIsPositive ()) ? 1 : -1;
+            float xSign = (quadrant.XComponentIsPositive ()) ? 1 : -1;
+            float ySign = (quadrant.YComponentIsPositive ()) ? 1 : -1;
             return new QVector2D (
                 region.center.x + xSign * childHalfRegion.x,
                 region.center.y + ySign * childHalfRegion.y

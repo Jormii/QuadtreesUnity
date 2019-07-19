@@ -14,8 +14,8 @@ namespace Quadtree {
         /// <returns>True, if the point was inserted, False if the quadtree's region does not contain the point
         /// or if the quadtree already contains this point.</returns>
         /// <param name="point">The point to insert.</param>
-        /// <param name="data">The data associated with this point.</param>
-        bool InsertPoint (QVector2D point, T data);
+        /// <param name="pointData">The data associated with this point.</param>
+        bool InsertPoint (QVector2D point, T pointData);
 
         /// <summary>
         /// Checks if the quadtree already stores the given point.
