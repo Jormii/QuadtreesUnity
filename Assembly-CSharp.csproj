@@ -57,6 +57,7 @@
   <ItemGroup>
      <Compile Include="Assets\Quadtree\IQuadtree.cs" />
      <Compile Include="Assets\Quadtree\PointQuadtree.cs" />
+     <Compile Include="Assets\Quadtree\PointRegionQuadtree.cs" />
      <Compile Include="Assets\Quadtree\QQuadrant.cs" />
      <Compile Include="Assets\Quadtree\QRegion.cs" />
      <Compile Include="Assets\Quadtree\QVector2D.cs" />
