@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -7,9 +8,11 @@ namespace Quadtree {
 
     public class PointQuadtree<T> : IQuadtree<T> {
 
+        private static QVector2D lastPointInserted;
+        private static bool subdividing;
+        
         private readonly uint depth;
         private readonly uint maximumDepth;
-        private QVector2D lastPointInserted;
         private readonly QRegion region;
         private readonly PointQuadtree<T>[] children = new PointQuadtree<T>[4];
         private readonly Dictionary<QVector2D, T> data = new Dictionary<QVector2D, T> ();
@@ -30,7 +33,7 @@ namespace Quadtree {
 
                 data.Add (point, pointData);
                 lastPointInserted = point;
-                if (depth != maximumDepth) {
+                if (depth != maximumDepth && !subdividing) {
                     Subdivide ();
                 }
                 return true;
@@ -45,7 +48,8 @@ namespace Quadtree {
         /// <returns>True, if the point was inserted, False otherwise.</returns>
         /// <param name="point">The point to insert.</param>
         /// <param name="pointData">The data associated with this point.</param>
-        [MethodImpl (MethodImplOptions.AggressiveInlining)] private bool InsertInChild (QVector2D point, T pointData) {
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        private bool InsertInChild (QVector2D point, T pointData) {
             if (children[0].region.ContainsPoint (point)) {
                 return children[0].InsertPoint (point, pointData);
             }
@@ -84,6 +88,8 @@ namespace Quadtree {
         }
 
         public void Subdivide () {
+            subdividing = true;
+
             children[0] = new PointQuadtree<T> (
                 depth + 1,
                 maximumDepth,
@@ -109,6 +115,8 @@ namespace Quadtree {
                 InsertInChild (entry.Key, entry.Value);
             }
             data.Clear ();
+
+            subdividing = false;
         }
 
         [MethodImpl (MethodImplOptions.AggressiveInlining)] private QRegion CalculateChildRegion (QQuadrant quadrant) {
@@ -123,14 +131,10 @@ namespace Quadtree {
         [MethodImpl (MethodImplOptions.AggressiveInlining)] private QVector2D CalculateChildHalfSize (QQuadrant quadrant) {
             QVector2D quadrantsCorner = GetQuadrantsCorner (quadrant);
 
-            float xComponent = lastPointInserted.x - quadrantsCorner.x;
-            if (xComponent < 0) {
-                xComponent *= -1;
-            }
-            float yComponent = lastPointInserted.y - quadrantsCorner.y;
-            if (yComponent < 0) {
-                yComponent *= -1;
-            }
+            float xComponent = .5f * (Math.Max (lastPointInserted.x, quadrantsCorner.x) -
+                Math.Min (lastPointInserted.x, quadrantsCorner.x));
+            float yComponent = .5f * (Math.Max (lastPointInserted.y, quadrantsCorner.y) -
+                Math.Min (lastPointInserted.y, quadrantsCorner.y));
 
             return new QVector2D (xComponent, yComponent);
         }
@@ -203,7 +207,7 @@ namespace Quadtree {
 
         public override string ToString () {
             string tabs = PrintTabs ();
-            return string.Format ("{0}RQ. Depth: {1}. Region: [{2}].\n{3}Data: {4}.\n{5}Children: {6}\n",
+            return string.Format ("{0}PQ. Depth: {1}. Region: [{2}].\n{3}Data: {4}.\n{5}Children: {6}\n",
                 tabs, depth, region, tabs, PrintData (), tabs, PrintChildren ());
         }
 

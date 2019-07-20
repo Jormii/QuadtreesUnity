@@ -137,7 +137,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!81 &1598497892
 AudioListener:
   m_ObjectHideFlags: 0
@@ -234,14 +234,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   testingPrefab: {fileID: 2740704968647216667, guid: d989b13c07cd3ca60a43f064fed13532,
     type: 3}
-  numberOfInstances: 1
-  spawnType: 2
+  numberOfInstances: 5
+  spawnType: 0
   quadtreeType: 1
-  quadtreeMaxDepth: 10
+  quadtreeMaxDepth: 1
   quadtreeBucketSize: 4
   quadtreeOrigin: {x: 0, y: 0}
   quadtreeHalfSize: {x: 1, y: 1}
   printQuadtree: 1
+  paintQuadtreeDepths: 1
 --- !u!4 &1873220204
 Transform:
   m_ObjectHideFlags: 0

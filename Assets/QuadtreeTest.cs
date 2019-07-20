@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Linq;
 using Quadtree;
+using UnityEditor;
 using UnityEngine;
 
 public class QuadtreeTest : MonoBehaviour {
@@ -28,6 +29,7 @@ public class QuadtreeTest : MonoBehaviour {
     public Vector2 quadtreeHalfSize = new Vector2 (100, 100);
 
     public bool printQuadtree = false;
+    public bool paintQuadtreeDepths = false;
 
     private IQuadtree<QVector2D> quadtree;
 
@@ -50,6 +52,9 @@ public class QuadtreeTest : MonoBehaviour {
                 tree.Region.halfRegionSize.x * 2f,
                 tree.Region.halfRegionSize.y * 2f
             );
+            if (paintQuadtreeDepths) {
+                Handles.Label (center, tree.Depth.ToString ());
+            }
             Gizmos.DrawWireCube (center, size);
         } else {
             for (QQuadrant quadrant = QQuadrant.NorthEast; quadrant < QQuadrant.NumberOfQuadrants; ++quadrant) {

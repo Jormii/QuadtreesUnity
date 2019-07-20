@@ -232,7 +232,7 @@ namespace Quadtree {
                     dataString.AppendFormat ("[{0} => {1}]; ", entry.Key, entry.Value);
                 }
             }
-            dataString.AppendLine (" }");
+            dataString.Append (" }");
 
             return dataString.ToString ();
         }
