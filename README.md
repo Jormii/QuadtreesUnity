@@ -1,7 +1,7 @@
 # QuadtreeUnity
 
 ## Previous note
-This project is being developed in Unity 2019.1.5f1, in Linux. However, the quadtree's source code is independent from Unity.
+This project is being developed in Unity 2019.1.5f1, in Linux. However, the quadtree's source code is independent from Unity. If you only want the source files, you can find them [here](https://github.com/Jormii/QuadtreesUnity/tree/master/Assets/Quadtree).
 
 ## Currently implemented quadtrees
 - [x] Region quadtree (added in version 1.1).
