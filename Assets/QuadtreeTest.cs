@@ -131,7 +131,7 @@ public class QuadtreeTest : MonoBehaviour {
 
         switch (quadtreeType) {
             case QuadtreeType.RegionQuadtree:
-                quadtree = new RegionQuadtree<byte> (quadtreeMaxDepth, region, GetZeroOrOne ());
+                quadtree = new RegionQuadtree<byte> (quadtreeMaxDepth, region, 0);
                 break;
             case QuadtreeType.PointQuadtree:
                 quadtree = new PointQuadtree<byte> (quadtreeMaxDepth, region);
