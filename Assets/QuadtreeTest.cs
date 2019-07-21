@@ -2,9 +2,16 @@
 using System.Diagnostics;
 using System.Linq;
 using Quadtree;
+using UnityEditor;
 using UnityEngine;
 
 public class QuadtreeTest : MonoBehaviour {
+
+    public enum QuadtreeType {
+        RegionQuadtree,
+        PointQuadtree,
+        PointRegionQuadtree
+    }
 
     public enum SpawnType {
         RandomSquare,
@@ -13,24 +20,26 @@ public class QuadtreeTest : MonoBehaviour {
     }
 
     public BoxCollider testingPrefab;
-    public uint numberOfInstances = 10000;
+    public uint numberOfInstances = 2500;
     public SpawnType spawnType = SpawnType.RandomSquare;
 
+    public QuadtreeType quadtreeType = QuadtreeType.RegionQuadtree;
     public uint quadtreeMaxDepth = 5;
     public uint quadtreeBucketSize = 4;
     public Vector2 quadtreeOrigin = new Vector2 (0, 0);
     public Vector2 quadtreeHalfSize = new Vector2 (100, 100);
 
     public bool printQuadtree = false;
+    public bool paintQuadtreeDepths = false;
 
-    private IQuadtree<QVector2D> quadtree;
+    private IQuadtree<byte> quadtree;
 
     private void OnDrawGizmosSelected () {
         if (quadtree == null) {
             return;
         }
 
-        List<IQuadtree<QVector2D>> leafNodes = new List<IQuadtree<QVector2D>> ();
+        List<IQuadtree<byte>> leafNodes = new List<IQuadtree<byte>> ();
         quadtree.GetLeafNodes (leafNodes);
         PaintQuadtree (quadtree);
     }
@@ -44,6 +53,9 @@ public class QuadtreeTest : MonoBehaviour {
                 tree.Region.halfRegionSize.x * 2f,
                 tree.Region.halfRegionSize.y * 2f
             );
+            if (paintQuadtreeDepths) {
+                Handles.Label (center, tree.Depth.ToString ());
+            }
             Gizmos.DrawWireCube (center, size);
         } else {
             for (QQuadrant quadrant = QQuadrant.NorthEast; quadrant < QQuadrant.NumberOfQuadrants; ++quadrant) {
@@ -99,25 +111,47 @@ public class QuadtreeTest : MonoBehaviour {
     }
 
     private void BuildQuadtree (BoxCollider[] colliders) {
-        QVector2D origin = new QVector2D (quadtreeOrigin.x, quadtreeOrigin.y);
-        QVector2D halfSize = new QVector2D (quadtreeHalfSize.x, quadtreeHalfSize.y);
-        quadtree = new RegionQuadtree<QVector2D> (quadtreeMaxDepth, quadtreeBucketSize, new QRegion (origin, halfSize));
+        CreateQuadtree ();
 
         Stopwatch treeBuildingStopwatch = Stopwatch.StartNew ();
         foreach (BoxCollider bc in colliders) {
             QVector2D point = new QVector2D (bc.transform.position.x, bc.transform.position.y);
-            quadtree.InsertPoint (point, point);
+            byte data = GetZeroOrOne ();
+            quadtree.InsertPoint (point, data);
+            bc.GetComponent<Renderer> ().material.color = (data == 1) ? Color.red : Color.yellow;
         }
         treeBuildingStopwatch.Stop ();
         UnityEngine.Debug.Log ("Time spent building the quadtree: " + treeBuildingStopwatch.Elapsed);
     }
 
+    private void CreateQuadtree () {
+        QVector2D origin = new QVector2D (quadtreeOrigin.x, quadtreeOrigin.y);
+        QVector2D halfSize = new QVector2D (quadtreeHalfSize.x, quadtreeHalfSize.y);
+        QRegion region = new QRegion (origin, halfSize);
+
+        switch (quadtreeType) {
+            case QuadtreeType.RegionQuadtree:
+                quadtree = new RegionQuadtree<byte> (quadtreeMaxDepth, region, 0);
+                break;
+            case QuadtreeType.PointQuadtree:
+                quadtree = new PointQuadtree<byte> (quadtreeMaxDepth, region);
+                break;
+            case QuadtreeType.PointRegionQuadtree:
+                quadtree = new PointRegionQuadtree<byte> (quadtreeMaxDepth, quadtreeBucketSize, region);
+                break;
+        }
+    }
+
+    private byte GetZeroOrOne () {
+        return (byte) Random.Range (0, 2);
+    }
+
     private void QuadtreeCollisionChecking () {
         Stopwatch collisionCheckingStopwatch = Stopwatch.StartNew ();
-        List<IQuadtree<QVector2D>> leafNodes = new List<IQuadtree<QVector2D>> ();
+        List<IQuadtree<byte>> leafNodes = new List<IQuadtree<byte>> ();
         quadtree.GetLeafNodes (leafNodes);
-        foreach (IQuadtree<QVector2D> leaf in leafNodes) {
-            List<QVector2D> leafData = new List<QVector2D> (leaf.Data.Values);
+        foreach (IQuadtree<byte> leaf in leafNodes) {
+            List<byte> leafData = new List<byte> (leaf.Data.Values);
             for (int i = 0; i < leafData.Count; ++i) {
                 for (int j = i + 1; j < leafData.Count; ++j) {
                     // Collision checking
