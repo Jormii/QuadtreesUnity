@@ -27,11 +27,13 @@ public class QuadtreeTest : MonoBehaviour {
     public uint quadtreeMaxDepth = 5;
     public uint quadtreeBucketSize = 4;
     public Vector2 quadtreeOrigin = new Vector2 (0, 0);
-    public Vector2 quadtreeHalfSize = new Vector2 (100, 100);
+    public Vector2 quadtreeHalfSize = new Vector2 (20, 10);
 
     public bool printQuadtree = false;
-    public bool paintQuadtreeDepths = false;
+    public bool paintQuadtreeDepths = true;
 
+    private const byte RED = 0;
+    private const byte YELLOW = 1;
     private IQuadtree<byte> quadtree;
 
     private void OnDrawGizmosSelected () {
@@ -118,7 +120,7 @@ public class QuadtreeTest : MonoBehaviour {
             QVector2D point = new QVector2D (bc.transform.position.x, bc.transform.position.y);
             byte data = GetZeroOrOne ();
             quadtree.InsertPoint (point, data);
-            bc.GetComponent<Renderer> ().material.color = (data == 1) ? Color.red : Color.yellow;
+            bc.GetComponent<Renderer> ().material.color = (data == RED) ? Color.red : Color.yellow;
         }
         treeBuildingStopwatch.Stop ();
         UnityEngine.Debug.Log ("Time spent building the quadtree: " + treeBuildingStopwatch.Elapsed);
@@ -131,7 +133,7 @@ public class QuadtreeTest : MonoBehaviour {
 
         switch (quadtreeType) {
             case QuadtreeType.RegionQuadtree:
-                quadtree = new RegionQuadtree<byte> (quadtreeMaxDepth, region, 0);
+                quadtree = new RegionQuadtree<byte> (quadtreeMaxDepth, region, RED);
                 break;
             case QuadtreeType.PointQuadtree:
                 quadtree = new PointQuadtree<byte> (quadtreeMaxDepth, region);
@@ -143,7 +145,7 @@ public class QuadtreeTest : MonoBehaviour {
     }
 
     private byte GetZeroOrOne () {
-        return (byte) Random.Range (0, 2);
+        return (byte) Random.Range (RED, YELLOW + 1);
     }
 
     private void QuadtreeCollisionChecking () {

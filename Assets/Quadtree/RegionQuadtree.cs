@@ -32,7 +32,7 @@ namespace Quadtree {
                     return false;
                 }
 
-                if (!data.Equals (pointData)) {
+                if (!data.Equals (pointData) && depth != maximumDepth) {
                     subdivisionPoint = point;
                     subdivisionPointData = pointData;
                     Subdivide ();
@@ -186,6 +186,66 @@ namespace Quadtree {
                 children[2].GetLeafNodes (outputList);
                 children[3].GetLeafNodes (outputList);
             }
+        }
+
+        public override bool Equals (object obj) {
+            if (obj == null) {
+                return false;
+            }
+
+            if (!GetType ().Equals (obj.GetType ())) {
+                return false;
+            }
+
+            RegionQuadtree<T> otherQuadtree = (RegionQuadtree<T>) obj;
+            return points.Equals (otherQuadtree.points) &&
+                data.Equals (otherQuadtree.data) &&
+                depth == otherQuadtree.depth &&
+                region.Equals (otherQuadtree.region);
+        }
+
+        public override int GetHashCode () {
+            return (data, points, depth, IsLeaf, region).GetHashCode ();
+        }
+
+        public override string ToString () {
+            string tabs = PrintTabs ();
+            return string.Format ("{0}RQ. Depth: {1}. Region: [{2}].\n{3}Data: {4}.\n{5}Children: {6}\n",
+                tabs, depth, region, tabs, PrintData (), tabs, PrintChildren ());
+        }
+
+        private string PrintTabs () {
+            StringBuilder tabs = new StringBuilder ();
+            for (int i = 0; i < depth; ++i) {
+                tabs.Append ('\t');
+            }
+
+            return tabs.ToString ();
+        }
+
+        private string PrintData () {
+            StringBuilder dataString = new StringBuilder ("{ ");
+            dataString.AppendFormat ("{0}. Points: [ ", data);
+            foreach (QVector2D point in points) {
+                dataString.AppendFormat ("{0}, ", point);
+            }
+            dataString.Append ("] }");
+
+            return dataString.ToString ();
+        }
+
+        private string PrintChildren () {
+            if (!IsLeaf) {
+                StringBuilder childrenString = new StringBuilder ("[");
+                foreach (RegionQuadtree<T> child in children) {
+                    childrenString.AppendFormat ("\n{0}", child);
+                }
+                childrenString.Append (PrintTabs ());
+                childrenString.Append ("]");
+                return childrenString.ToString ();
+            }
+
+            return "No children";
         }
 
         #region Properties
